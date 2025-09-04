@@ -77,7 +77,7 @@ export const useUploadStore = defineStore('upload', () => {
         uploadProgress.value = progress
       })
 
-      if (response.success) {
+      if (response.success && response.data) {
         uploadedImages.value.unshift(response.data)
         await fetchStats() // 更新统计信息
       }

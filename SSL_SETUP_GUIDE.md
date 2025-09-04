@@ -157,7 +157,7 @@ docker-compose --profile proxy up -d
 
 ### 3. 修改端口映射（可选）
 
-如果希望使用标准端口（80/443），可以修改 `docker-compose.prod.yml` 中的端口映射：
+如果希望使用标准端口（80/443），可以修改 `docker-compose.yml` 中的端口映射：
 
 ```yaml
 nginx:

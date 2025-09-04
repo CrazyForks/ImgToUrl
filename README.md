@@ -48,8 +48,8 @@
 - **[GitHub部署指南](GITHUB_DEPLOY_GUIDE.md)** - GitHub Actions自动部署
 
 ### ⚙️ 配置文件
-- **[docker-compose.prod.yml](docker-compose.prod.yml)** - 生产环境Docker Compose配置
-- **[.env.prod](.env.prod)** - 生产环境变量模板
+- **[docker-compose.yml](docker-compose.yml)** - Docker Compose配置
+- **[.env.example](.env.example)** - 环境变量模板
 - **[deploy-vps.sh](deploy-vps.sh)** - VPS一键部署脚本
 
 ## 📦 项目结构
@@ -95,7 +95,7 @@
 ├── scripts/               # 部署脚本
 │   └── deploy-vps.sh
 ├── docker-compose.yml     # 开发环境配置
-├── docker-compose.prod.yml # 生产环境配置
+├── docker-compose.yml       # Docker Compose配置
 └── README.md              # 项目说明
 ```
 
@@ -327,7 +327,7 @@ Redis 用于：
 我们提供了完整的部署解决方案，包含详细的配置和安全设置：
 
 - **[VPS部署指南](VPS_DEPLOY_GUIDE.md)** - 完整的VPS部署教程
-- **[Docker部署配置](docker-compose.prod.yml)** - 生产环境Docker Compose配置
+- **[Docker部署配置](docker-compose.yml)** - Docker Compose配置
 - **[传统部署方案](TRADITIONAL_DEPLOY_GUIDE.md)** - 不使用Docker的传统部署方式
 - **[SSL证书配置](SSL_SETUP_GUIDE.md)** - HTTPS证书配置指南
 - **[域名配置指南](DOMAIN_SETUP_GUIDE.md)** - 域名和DNS配置
@@ -344,7 +344,7 @@ git clone https://github.com/roseforljh/ImgToUrl.git
 cd ImgToUrl
 
 # 配置环境变量
-cp .env.prod .env
+cp .env.example .env
 nano .env  # 修改配置
 
 # 一键部署
@@ -355,13 +355,13 @@ bash deploy-vps.sh
 
 ```bash
 # 使用生产环境配置
-docker-compose -f docker-compose.prod.yml up -d
+docker-compose up -d
 
 # 查看服务状态
-docker-compose -f docker-compose.prod.yml ps
+docker-compose ps
 
 # 查看日志
-docker-compose -f docker-compose.prod.yml logs -f
+docker-compose logs -f
 ```
 
 ### 🛠️ 传统部署

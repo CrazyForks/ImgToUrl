@@ -204,8 +204,8 @@ deploy() {
     # 选择 docker-compose 文件
     local compose_file="docker-compose.yml"
     if [ "$env" = "prod" ]; then
-        if [ -f "docker-compose.prod.yml" ]; then
-            compose_file="docker-compose.prod.yml"
+        if [ -f "docker-compose.yml" ]; then
+    compose_file="docker-compose.yml"
         fi
     fi
     

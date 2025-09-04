@@ -25,6 +25,5 @@ declare module 'vue' {
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    WaterRipple: typeof import('./src/components/WaterRipple.vue')['default']
   }
 }

@@ -153,12 +153,12 @@ setup_project() {
     
     # 复制生产环境配置
     if [[ ! -f .env ]]; then
-        if [[ -f .env.prod ]]; then
-            cp .env.prod .env
-            print_success "已复制生产环境配置模板到 .env"
+        if [[ -f .env.example ]]; then
+            cp .env.example .env
+            print_success "已复制 .env.example 到 .env"
             print_warning "请编辑 .env 文件，配置您的数据库密码和域名"
         else
-            print_error "未找到 .env.prod 模板文件"
+            print_error "未找到 .env.example 模板文件"
             exit 1
         fi
     else
@@ -215,10 +215,10 @@ deploy_app() {
     print_info "开始部署应用..."
     
     # 构建并启动服务
-    if [[ -f docker-compose.prod.yml ]]; then
-        print_info "使用生产环境配置部署..."
-        docker-compose -f docker-compose.prod.yml build
-        docker-compose -f docker-compose.prod.yml up -d
+    if [[ -f docker-compose.yml ]]; then
+        print_info "构建 Docker 镜像..."
+        docker-compose build
+        docker-compose up -d
     else
         print_info "使用默认配置部署..."
         docker-compose build
@@ -234,8 +234,8 @@ check_services() {
     
     sleep 10
     
-    if [[ -f docker-compose.prod.yml ]]; then
-        docker-compose -f docker-compose.prod.yml ps
+    if [[ -f docker-compose.yml ]]; then
+        docker-compose ps
     else
         docker-compose ps
     fi

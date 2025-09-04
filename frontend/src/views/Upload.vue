@@ -177,7 +177,7 @@
                width="80%" 
                center>
       <div class="preview-container">
-        <img v-if="previewImage" 
+        <img v-if="currentPreviewImage" 
              :src="currentPreviewImage?.public_url" 
              :alt="currentPreviewImage?.original_name" 
              class="preview-image" />

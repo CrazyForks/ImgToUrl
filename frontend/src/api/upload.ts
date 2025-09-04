@@ -24,7 +24,8 @@ api.interceptors.request.use(
 // 响应拦截器
 api.interceptors.response.use(
   (response) => {
-    return response.data
+    // 返回完整响应对象，方便在调用处通过泛型解构 data 获取类型安全的数据
+    return response
   },
   (error) => {
     const message = error.response?.data?.error || error.message || '请求失败'
@@ -38,7 +39,7 @@ export const uploadImage = async (
   onProgress?: (progress: number) => void
 ): Promise<UploadResult> => {
   try {
-    const response = await api.post('/images/upload', formData, {
+    const { data } = await api.post<UploadResult>('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
@@ -49,7 +50,7 @@ export const uploadImage = async (
         }
       }
     })
-    return response
+    return data
   } catch (error: any) {
     throw new Error(error.message)
   }
@@ -61,7 +62,7 @@ export const batchUploadImages = async (
   onProgress?: (progress: number) => void
 ): Promise<BatchUploadResult> => {
   try {
-    const response = await api.post('/batch-upload', formData, {
+    const { data } = await api.post<BatchUploadResult>('/batch-upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
@@ -72,7 +73,7 @@ export const batchUploadImages = async (
         }
       }
     })
-    return response
+    return data
   } catch (error: any) {
     throw new Error(error.message)
   }
@@ -81,8 +82,8 @@ export const batchUploadImages = async (
 // 获取图片信息
 export const getImageInfo = async (uuid: string): Promise<{ success: boolean; data: ImageInfo }> => {
   try {
-    const response = await api.get(`/images/${uuid}`)
-    return response
+    const { data } = await api.get<{ success: boolean; data: ImageInfo }>(`/images/${uuid}`)
+    return data
   } catch (error: any) {
     throw new Error(error.message)
   }
@@ -91,15 +92,19 @@ export const getImageInfo = async (uuid: string): Promise<{ success: boolean; da
 // 获取统计信息
 export const getStats = async (): Promise<{ success: boolean; data: StatsInfo }> => {
   try {
-    const response = await api.get('/images/stats/summary')
-    return response
+    const { data } = await api.get<{ success: boolean; data: StatsInfo }>('/images/stats/summary')
+    return data
   } catch (error: any) {
     throw new Error(error.message)
   }
 }
 
 // 健康检查
-export const healthCheck = async (): Promise<{ status: string; timestamp: number; service: string }> => {
+export const healthCheck = async (): Promise<{
+  status: string
+  timestamp: number
+  service: string
+}> => {
   try {
     const response = await axios.get('/health')
     return response.data

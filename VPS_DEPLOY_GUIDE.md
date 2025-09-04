@@ -286,7 +286,116 @@ sudo chown $USER:$USER nginx/ssl/*
 
 ## 📊 监控和维护
 
-### 1. 日志管理
+### 1. 项目更新
+
+当项目有新版本时，按以下步骤更新：
+
+#### 1. 备份数据（重要）
+
+```bash
+# 备份数据库
+docker-compose exec mysql mysqldump -u root -p image_host > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# 备份上传的文件
+sudo cp -r ./public ./backup_public_$(date +%Y%m%d_%H%M%S)
+```
+
+#### 拉取最新代码
+
+```bash
+# 停止服务
+docker-compose down
+
+# 拉取最新代码
+git pull origin main
+
+# 或者如果没有使用git，重新下载项目
+# wget https://github.com/roseforljh/ImgToUrl/archive/refs/heads/main.zip
+# unzip main.zip
+# cp -r ImgToUrl-main/* ./
+```
+
+#### 3. 更新配置文件
+
+```bash
+# 检查是否有新的环境变量
+diff .env.example .env
+
+# 根据需要更新 .env 文件
+nano .env
+```
+
+#### 4. 重新构建和部署
+
+```bash
+# 清理旧的镜像和容器
+docker system prune -f
+
+# 重新构建并启动
+docker-compose up -d --build
+
+# 查看启动状态
+docker-compose ps
+docker-compose logs -f
+```
+
+#### 验证更新
+
+```bash
+# 检查服务状态
+curl http://localhost/api/health
+
+# 访问前端页面确认功能正常
+# http://您的服务器IP
+```
+
+#### 快速更新脚本
+
+创建更新脚本 `update.sh`：
+
+```bash
+#!/bin/bash
+echo "开始更新图床系统..."
+
+# 备份数据库
+echo "备份数据库..."
+docker-compose exec -T mysql mysqldump -u root -p image_host > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# 停止服务
+echo "停止服务..."
+docker-compose down
+
+# 拉取最新代码
+echo "拉取最新代码..."
+git pull origin main
+
+# 重新构建和启动
+echo "重新构建和启动服务..."
+docker-compose up -d --build
+
+# 等待服务启动
+echo "等待服务启动..."
+sleep 30
+
+# 检查服务状态
+echo "检查服务状态..."
+docker-compose ps
+
+echo "更新完成！"
+echo "请访问 http://$(curl -s ifconfig.me) 验证服务是否正常"
+```
+
+使用更新脚本：
+
+```bash
+# 给脚本执行权限
+chmod +x update.sh
+
+# 运行更新
+./update.sh
+```
+
+### 2. 日志管理
 ```bash
 # 查看应用日志
 docker-compose logs backend
@@ -295,11 +404,21 @@ docker-compose logs frontend
 # 查看数据库日志
 docker-compose logs mysql
 
+# 查看所有服务日志
+docker-compose logs -f
+
+# 查看特定服务日志
+docker-compose logs -f backend
+docker-compose logs -f frontend
+
+# 查看最近100行日志
+docker-compose logs --tail=100 backend
+
 # 清理日志（定期执行）
 docker system prune -f
 ```
 
-### 2. 数据备份
+### 3. 数据备份
 ```bash
 # 备份数据库
 docker-compose exec mysql mysqldump -u root -p image_host > backup_$(date +%Y%m%d).sql
@@ -308,7 +427,7 @@ docker-compose exec mysql mysqldump -u root -p image_host > backup_$(date +%Y%m%
 tar -czf uploads_backup_$(date +%Y%m%d).tar.gz backend/uploads/
 ```
 
-### 3. 性能优化
+### 4. 性能优化
 ```bash
 # 查看资源使用情况
 docker stats

@@ -230,8 +230,8 @@ if "%deploy_detach%"=="true" (
 REM 选择 docker-compose 文件
 set "compose_file=docker-compose.yml"
 if "%deploy_env%"=="prod" (
-    if exist "docker-compose.prod.yml" (
-        set "compose_file=docker-compose.prod.yml"
+    if exist "docker-compose.yml" (
+    set "compose_file=docker-compose.yml"
     )
 )
 
