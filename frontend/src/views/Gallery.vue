@@ -1,0 +1,960 @@
+<template>
+  <div class="gallery-container">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+      <div class="nav-content">
+        <router-link to="/" class="logo">
+          <el-icon :size="32" color="#fff">
+            <Picture />
+          </el-icon>
+          <span class="logo-text">图床转换系统</span>
+        </router-link>
+        <div class="nav-menu">
+          <router-link to="/" class="nav-link">
+            <el-icon><House /></el-icon>
+            首页
+          </router-link>
+          <router-link to="/upload" class="nav-link">
+            <el-icon><Upload /></el-icon>
+            上传图片
+          </router-link>
+          <router-link to="/stats" class="nav-link">
+            <el-icon><DataAnalysis /></el-icon>
+            统计信息
+          </router-link>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="main-content">
+      <div class="gallery-wrapper">
+        <!-- 页面标题和工具栏 -->
+        <section class="header-section">
+          <div class="title-area">
+            <h1 class="page-title">
+              <el-icon><Picture /></el-icon>
+              图片画廊
+            </h1>
+            <p class="page-description">
+              浏览和管理您上传的所有图片
+            </p>
+          </div>
+          
+          <div class="toolbar">
+            <div class="search-bar">
+              <el-input
+                v-model="searchQuery"
+                placeholder="搜索图片名称..."
+                :prefix-icon="Search"
+                clearable
+                @input="handleSearch"
+              />
+            </div>
+            
+            <div class="view-controls">
+              <el-radio-group v-model="viewMode" size="small">
+                <el-radio-button label="grid">
+                  <el-icon><Grid /></el-icon>
+                  网格
+                </el-radio-button>
+                <el-radio-button label="list">
+                  <el-icon><List /></el-icon>
+                  列表
+                </el-radio-button>
+              </el-radio-group>
+            </div>
+            
+            <div class="sort-controls">
+              <el-select v-model="sortBy" placeholder="排序方式" size="small">
+                <el-option label="上传时间" value="created_at" />
+                <el-option label="文件名" value="original_name" />
+                <el-option label="文件大小" value="file_size" />
+              </el-select>
+              
+              <el-button 
+                size="small" 
+                @click="toggleSortOrder"
+                :icon="sortOrder === 'desc' ? SortDown : SortUp"
+              >
+                {{ sortOrder === 'desc' ? '降序' : '升序' }}
+              </el-button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 统计信息 -->
+        <section class="stats-section">
+          <div class="stats-cards">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <el-icon :size="24" color="#409EFF">
+                  <Picture />
+                </el-icon>
+              </div>
+              <div class="stat-content">
+                <div class="stat-value">{{ filteredImages.length }}</div>
+                <div class="stat-label">图片总数</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <el-icon :size="24" color="#67C23A">
+                  <FolderOpened />
+                </el-icon>
+              </div>
+              <div class="stat-content">
+                <div class="stat-value">{{ formatFileSize(totalSize) }}</div>
+                <div class="stat-label">总存储量</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <el-icon :size="24" color="#E6A23C">
+                  <Calendar />
+                </el-icon>
+              </div>
+              <div class="stat-content">
+                <div class="stat-value">{{ todayCount }}</div>
+                <div class="stat-label">今日上传</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 图片展示区域 -->
+        <section class="images-section">
+          <!-- 加载状态 -->
+          <div v-if="loading" class="loading-container">
+            <el-icon :size="48" class="loading-icon">
+              <Loading />
+            </el-icon>
+            <p>加载中...</p>
+          </div>
+          
+          <!-- 空状态 -->
+          <div v-else-if="filteredImages.length === 0" class="empty-state">
+            <el-icon :size="64" color="#909399">
+              <Picture />
+            </el-icon>
+            <h3>暂无图片</h3>
+            <p v-if="searchQuery">没有找到匹配的图片，请尝试其他关键词</p>
+            <p v-else>还没有上传任何图片</p>
+            <el-button type="primary" @click="$router.push('/upload')">
+              <el-icon><Plus /></el-icon>
+              上传图片
+            </el-button>
+          </div>
+          
+          <!-- 网格视图 -->
+          <div v-else-if="viewMode === 'grid'" class="grid-view">
+            <div 
+              v-for="image in paginatedImages" 
+              :key="image.uuid" 
+              class="image-card"
+              @click="previewImage(image)"
+            >
+              <div class="image-container">
+                <img 
+                  :src="image.public_url" 
+                  :alt="image.original_name"
+                  @load="handleImageLoad"
+                  @error="handleImageError"
+                />
+                <div class="image-overlay">
+                  <div class="overlay-actions">
+                    <el-button circle size="small" @click.stop="previewImage(image)">
+                      <el-icon><ZoomIn /></el-icon>
+                    </el-button>
+                    <el-button circle size="small" @click.stop="copyUrl(image.public_url)">
+                      <el-icon><DocumentCopy /></el-icon>
+                    </el-button>
+                    <el-button circle size="small" @click.stop="downloadImage(image)">
+                      <el-icon><Download /></el-icon>
+                    </el-button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="image-info">
+                <div class="image-name" :title="image.original_name">
+                  {{ image.original_name }}
+                </div>
+                <div class="image-meta">
+                  <span class="file-size">{{ formatFileSize(image.file_size) }}</span>
+                  <span class="dimensions">{{ image.width }}×{{ image.height }}</span>
+                </div>
+                <div class="upload-time">
+                  {{ formatTime(image.created_at) }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 列表视图 -->
+          <div v-else class="list-view">
+            <el-table 
+              :data="paginatedImages" 
+              style="width: 100%"
+              @row-click="previewImage"
+            >
+              <el-table-column width="80">
+                <template #default="{ row }">
+                  <div class="table-image">
+                    <img 
+                      :src="row.public_url" 
+                      :alt="row.original_name"
+                      @error="handleImageError"
+                    />
+                  </div>
+                </template>
+              </el-table-column>
+              
+              <el-table-column prop="original_name" label="文件名" min-width="200">
+                <template #default="{ row }">
+                  <div class="file-info">
+                    <div class="file-name">{{ row.original_name }}</div>
+                    <div class="file-type">{{ getFileExtension(row.original_name) }}</div>
+                  </div>
+                </template>
+              </el-table-column>
+              
+              <el-table-column prop="file_size" label="大小" width="100">
+                <template #default="{ row }">
+                  {{ formatFileSize(row.file_size) }}
+                </template>
+              </el-table-column>
+              
+              <el-table-column label="尺寸" width="120">
+                <template #default="{ row }">
+                  {{ row.width }}×{{ row.height }}
+                </template>
+              </el-table-column>
+              
+              <el-table-column prop="created_at" label="上传时间" width="150">
+                <template #default="{ row }">
+                  {{ formatTime(row.created_at) }}
+                </template>
+              </el-table-column>
+              
+              <el-table-column label="操作" width="200" fixed="right">
+                <template #default="{ row }">
+                  <div class="table-actions">
+                    <el-button size="small" @click.stop="previewImage(row)">
+                      <el-icon><ZoomIn /></el-icon>
+                    </el-button>
+                    <el-button size="small" @click.stop="copyUrl(row.public_url)">
+                      <el-icon><DocumentCopy /></el-icon>
+                    </el-button>
+                    <el-button size="small" @click.stop="downloadImage(row)">
+                      <el-icon><Download /></el-icon>
+                    </el-button>
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          
+          <!-- 分页 -->
+          <div v-if="filteredImages.length > pageSize" class="pagination-container">
+            <el-pagination
+              v-model:current-page="currentPage"
+              :page-size="pageSize"
+              :total="filteredImages.length"
+              layout="total, prev, pager, next, jumper"
+              @current-change="handlePageChange"
+            />
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- 图片预览对话框 -->
+    <el-dialog 
+      v-model="previewVisible" 
+      :title="currentPreviewImage?.original_name" 
+      width="90%" 
+      center
+      class="preview-dialog"
+    >
+      <div class="preview-container">
+        <img 
+          v-if="currentPreviewImage" 
+          :src="currentPreviewImage.public_url" 
+          :alt="currentPreviewImage.original_name" 
+          class="preview-image"
+        />
+      </div>
+      
+      <template #footer>
+        <div class="preview-footer">
+          <div class="image-details">
+            <div class="detail-item">
+              <span class="label">文件名：</span>
+              <span class="value">{{ currentPreviewImage?.original_name }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">大小：</span>
+              <span class="value">{{ formatFileSize(currentPreviewImage?.file_size || 0) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">尺寸：</span>
+              <span class="value">{{ currentPreviewImage?.width }}×{{ currentPreviewImage?.height }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">上传时间：</span>
+              <span class="value">{{ formatTime(currentPreviewImage?.created_at || '') }}</span>
+            </div>
+          </div>
+          
+          <div class="preview-actions">
+            <el-button @click="copyUrl(currentPreviewImage?.public_url || '')">
+              <el-icon><DocumentCopy /></el-icon>
+              复制链接
+            </el-button>
+            <el-button @click="copyMarkdown(currentPreviewImage)">
+              <el-icon><Document /></el-icon>
+              复制 Markdown
+            </el-button>
+            <el-button @click="downloadImage(currentPreviewImage)">
+              <el-icon><Download /></el-icon>
+              下载图片
+            </el-button>
+          </div>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import {
+  Picture,
+  House,
+  Upload,
+  DataAnalysis,
+  Search,
+  Grid,
+  List,
+  SortDown,
+  SortUp,
+  FolderOpened,
+  Calendar,
+  Loading,
+  Plus,
+  ZoomIn,
+  DocumentCopy,
+  Download,
+  Document
+} from '@element-plus/icons-vue'
+import { useUploadStore, type ImageInfo } from '@/stores/upload'
+import dayjs from 'dayjs'
+import 'dayjs/locale/zh-cn'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
+// 配置 dayjs
+dayjs.locale('zh-cn')
+dayjs.extend(relativeTime)
+
+const router = useRouter()
+const uploadStore = useUploadStore()
+
+// 状态
+const loading = ref(false)
+const searchQuery = ref('')
+const viewMode = ref<'grid' | 'list'>('grid')
+const sortBy = ref('created_at')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+const currentPage = ref(1)
+const pageSize = ref(20)
+const previewVisible = ref(false)
+const currentPreviewImage = ref<ImageInfo | null>(null)
+
+// 计算属性
+const uploadedImages = computed(() => uploadStore.uploadedImages)
+
+// 过滤和排序后的图片
+const filteredImages = computed(() => {
+  let images = [...uploadedImages.value]
+  
+  // 搜索过滤
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    images = images.filter(image => 
+      image.original_name.toLowerCase().includes(query)
+    )
+  }
+  
+  // 排序
+  images.sort((a, b) => {
+    let aValue: any = a[sortBy.value as keyof ImageInfo]
+    let bValue: any = b[sortBy.value as keyof ImageInfo]
+    
+    if (sortBy.value === 'created_at') {
+      aValue = new Date(aValue).getTime()
+      bValue = new Date(bValue).getTime()
+    } else if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase()
+      bValue = bValue.toLowerCase()
+    }
+    
+    if (sortOrder.value === 'desc') {
+      return bValue > aValue ? 1 : -1
+    } else {
+      return aValue > bValue ? 1 : -1
+    }
+  })
+  
+  return images
+})
+
+// 分页后的图片
+const paginatedImages = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredImages.value.slice(start, end)
+})
+
+// 统计信息
+const totalSize = computed(() => {
+  return filteredImages.value.reduce((sum, image) => sum + image.file_size, 0)
+})
+
+const todayCount = computed(() => {
+  const today = dayjs().format('YYYY-MM-DD')
+  return filteredImages.value.filter(image => 
+    dayjs(image.created_at).format('YYYY-MM-DD') === today
+  ).length
+})
+
+// 方法
+const formatFileSize = (bytes: number): string => {
+  return uploadStore.formatFileSize(bytes)
+}
+
+const formatTime = (dateString: string): string => {
+  return dayjs(dateString).fromNow()
+}
+
+const getFileExtension = (filename: string): string => {
+  return filename.split('.').pop()?.toUpperCase() || ''
+}
+
+const handleSearch = () => {
+  currentPage.value = 1
+}
+
+const toggleSortOrder = () => {
+  sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+}
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  // 滚动到顶部
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const previewImage = (image: ImageInfo) => {
+  currentPreviewImage.value = image
+  previewVisible.value = true
+}
+
+const copyUrl = async (url: string) => {
+  const success = await uploadStore.copyToClipboard(url)
+  if (success) {
+    ElMessage.success('链接已复制到剪贴板')
+  } else {
+    ElMessage.error('复制失败')
+  }
+}
+
+const copyMarkdown = async (image: ImageInfo | null) => {
+  if (!image) return
+  
+  const markdown = `![${image.original_name}](${image.public_url})`
+  const success = await uploadStore.copyToClipboard(markdown)
+  if (success) {
+    ElMessage.success('Markdown 格式已复制')
+  } else {
+    ElMessage.error('复制失败')
+  }
+}
+
+const downloadImage = (image: ImageInfo | null) => {
+  if (!image) return
+  
+  const link = document.createElement('a')
+  link.href = image.public_url
+  link.download = image.original_name
+  link.target = '_blank'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+const handleImageLoad = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  img.style.opacity = '1'
+}
+
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjVmNWY1Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuWKoOi9veWksei0pTwvdGV4dD48L3N2Zz4='
+}
+
+// 监听搜索和排序变化，重置页码
+watch([searchQuery, sortBy, sortOrder], () => {
+  currentPage.value = 1
+})
+
+// 组件挂载时加载数据
+onMounted(async () => {
+  loading.value = true
+  try {
+    await uploadStore.fetchStats()
+  } catch (error) {
+    console.error('加载数据失败:', error)
+  } finally {
+    loading.value = false
+  }
+})
+</script>
+
+<style lang="scss" scoped>
+.gallery-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+// 导航栏样式
+.navbar {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  .nav-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 64px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .nav-menu {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+// 主要内容
+.main-content {
+  flex: 1;
+  padding: 2rem;
+}
+
+.gallery-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// 页面头部
+.header-section {
+  margin-bottom: 2rem;
+
+  .title-area {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .page-description {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1.125rem;
+    }
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 1rem;
+
+    .search-bar {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .view-controls,
+    .sort-controls {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+  }
+}
+
+// 统计信息
+.stats-section {
+  margin-bottom: 2rem;
+
+  .stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-content {
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+// 图片展示区域
+.images-section {
+  .loading-container {
+    text-align: center;
+    padding: 4rem;
+    color: white;
+
+    .loading-icon {
+      animation: rotate 2s linear infinite;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem;
+    color: white;
+
+    h3 {
+      margin: 1rem 0;
+      font-size: 1.5rem;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 2rem;
+    }
+  }
+
+  // 网格视图
+  .grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    .image-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+      }
+
+      .image-container {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .image-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+
+          .overlay-actions {
+            display: flex;
+            gap: 0.5rem;
+          }
+        }
+
+        &:hover .image-overlay {
+          opacity: 1;
+        }
+      }
+
+      .image-info {
+        padding: 1rem;
+
+        .image-name {
+          font-weight: 600;
+          color: white;
+          margin-bottom: 0.5rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .image-meta {
+          display: flex;
+          gap: 1rem;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.875rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .upload-time {
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+
+  // 列表视图
+  .list-view {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+
+    .table-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .file-info {
+      .file-name {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .file-type {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.125rem 0.5rem;
+        border-radius: 4px;
+        display: inline-block;
+      }
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+  }
+
+  // 分页
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+  }
+}
+
+// 预览对话框
+.preview-dialog {
+  .preview-container {
+    text-align: center;
+    max-height: 70vh;
+    overflow: auto;
+
+    .preview-image {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+    }
+  }
+
+  .preview-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+
+    .image-details {
+      flex: 1;
+      text-align: left;
+
+      .detail-item {
+        margin-bottom: 0.5rem;
+
+        .label {
+          font-weight: 600;
+          margin-right: 0.5rem;
+        }
+
+        .value {
+          color: rgba(0, 0, 0, 0.7);
+        }
+      }
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// 动画
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 1rem;
+
+    .nav-menu {
+      gap: 1rem;
+    }
+
+    .nav-link {
+      padding: 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .search-bar {
+      order: -1;
+    }
+
+    .view-controls,
+    .sort-controls {
+      justify-content: center;
+    }
+  }
+
+  .grid-view {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  .preview-footer {
+    flex-direction: column;
+    gap: 1rem;
+
+    .preview-actions {
+      justify-content: center;
+    }
+  }
+}
+</style>

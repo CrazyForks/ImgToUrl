@@ -1,0 +1,1202 @@
+// 全局样式文件
+// 主要用于覆盖 Element Plus 主题和自定义样式
+
+// 导入 Element Plus 变量
+@use 'element-plus/theme-chalk/src/common/var.scss' as *;
+
+// 自定义主题变量 - 纯黑白色调
+:root {
+  // 主色调 - 纯黑白
+  --el-color-primary: #000000;
+  --el-color-primary-light-3: #1a1a1a;
+  --el-color-primary-light-5: #333333;
+  --el-color-primary-light-7: #666666;
+  --el-color-primary-light-8: #999999;
+  --el-color-primary-light-9: #f8f8f8;
+  --el-color-primary-dark-2: #000000;
+
+  // 成功色 - 黑白系
+  --el-color-success: #000000;
+  --el-color-success-light-3: #1a1a1a;
+  --el-color-success-light-5: #333333;
+  --el-color-success-light-7: #666666;
+  --el-color-success-light-8: #999999;
+  --el-color-success-light-9: #f8f8f8;
+  --el-color-success-dark-2: #000000;
+
+  // 警告色 - 黑白系
+  --el-color-warning: #1a1a1a;
+  --el-color-warning-light-3: #333333;
+  --el-color-warning-light-5: #666666;
+  --el-color-warning-light-7: #999999;
+  --el-color-warning-light-8: #cccccc;
+  --el-color-warning-light-9: #f8f8f8;
+  --el-color-warning-dark-2: #000000;
+
+  // 危险色 - 黑白系
+  --el-color-danger: #000000;
+  --el-color-danger-light-3: #1a1a1a;
+  --el-color-danger-light-5: #333333;
+  --el-color-danger-light-7: #666666;
+  --el-color-danger-light-8: #999999;
+  --el-color-danger-light-9: #f8f8f8;
+  --el-color-danger-dark-2: #000000;
+
+  // 信息色 - 黑白系
+  --el-color-info: #333333;
+  --el-color-info-light-3: #666666;
+  --el-color-info-light-5: #999999;
+  --el-color-info-light-7: #cccccc;
+  --el-color-info-light-8: #e6e6e6;
+  --el-color-info-light-9: #f8f8f8;
+  --el-color-info-dark-2: #1a1a1a;
+
+  // 文本色 - 纯黑白
+  --el-text-color-primary: #000000;
+  --el-text-color-regular: #1a1a1a;
+  --el-text-color-secondary: #333333;
+  --el-text-color-placeholder: #666666;
+  --el-text-color-disabled: #999999;
+
+  // 边框色 - 纯黑白渐变
+  --el-border-color: #e0e0e0;
+  --el-border-color-light: #f0f0f0;
+  --el-border-color-lighter: #f8f8f8;
+  --el-border-color-extra-light: #fcfcfc;
+  --el-border-color-dark: #cccccc;
+  --el-border-color-darker: #999999;
+
+  // 填充色 - 纯白渐变
+  --el-fill-color: #f8f8f8;
+  --el-fill-color-light: #fcfcfc;
+  --el-fill-color-lighter: #fefefe;
+  --el-fill-color-extra-light: #ffffff;
+  --el-fill-color-dark: #f0f0f0;
+  --el-fill-color-darker: #e0e0e0;
+  --el-fill-color-blank: #ffffff;
+
+  // 背景色 - 纯白
+  --el-bg-color: #ffffff;
+  --el-bg-color-page: #ffffff;
+  --el-bg-color-overlay: #ffffff;
+
+  // 阴影色 - 纯黑透明
+  --el-box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  --el-box-shadow-light: 0 2px 8px 0 rgba(0, 0, 0, 0.06);
+  --el-box-shadow-base: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+  --el-box-shadow-dark: 0 4px 16px 0 rgba(0, 0, 0, 0.12);
+}
+
+// 暗色主题 - 纯黑白
+.dark {
+  --el-color-primary: #ffffff;
+  --el-color-primary-light-3: #e6e6e6;
+  --el-color-primary-light-5: #cccccc;
+  --el-color-primary-light-7: #999999;
+  --el-color-primary-light-8: #666666;
+  --el-color-primary-light-9: #0f0f0f;
+  --el-color-primary-dark-2: #ffffff;
+
+  --el-text-color-primary: #ffffff;
+  --el-text-color-regular: #e6e6e6;
+  --el-text-color-secondary: #cccccc;
+  --el-text-color-placeholder: #999999;
+  --el-text-color-disabled: #666666;
+
+  --el-border-color: #1f1f1f;
+  --el-border-color-light: #0f0f0f;
+  --el-border-color-lighter: #080808;
+  --el-border-color-extra-light: #030303;
+  --el-border-color-dark: #404040;
+  --el-border-color-darker: #4a4a4a;
+
+  --el-fill-color: #080808;
+  --el-fill-color-light: #050505;
+  --el-fill-color-lighter: #020202;
+  --el-fill-color-extra-light: #000000;
+  --el-fill-color-dark: #252525;
+  --el-fill-color-darker: #303030;
+  --el-fill-color-blank: #000000;
+
+  --el-bg-color: #000000;
+  --el-bg-color-page: #000000;
+  --el-bg-color-overlay: #000000;
+
+  // 暗色主题阴影
+  --el-box-shadow: 0 2px 12px 0 rgba(255, 255, 255, 0.1);
+  --el-box-shadow-light: 0 2px 8px 0 rgba(255, 255, 255, 0.06);
+  --el-box-shadow-base: 0 2px 4px rgba(255, 255, 255, 0.12), 0 0 6px rgba(255, 255, 255, 0.04);
+  --el-box-shadow-dark: 0 4px 16px 0 rgba(255, 255, 255, 0.12);
+}
+
+// 全局样式重置 - 适配纯黑背景
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #ffffff;
+  line-height: 1.6;
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+// 确保组件在黑色背景上的可见性
+#app {
+  min-height: 100vh;
+  background-color: transparent;
+  color: #ffffff;
+}
+
+// 水波背景下的组件适配
+.water-background {
+  .el-card {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    
+    .el-card__body {
+      color: #000000;
+    }
+  }
+  
+  .el-button {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    color: #000000 !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 1) !important;
+      box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+    }
+    
+    &.el-button--primary {
+      background-color: rgba(0, 0, 0, 0.8) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(0, 0, 0, 0.5);
+      
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.9) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      }
+    }
+  }
+  
+  .el-input__wrapper {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    
+    .el-input__inner {
+      color: #000000 !important;
+    }
+  }
+  
+  .el-upload-dragger {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 2px dashed rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(10px);
+    color: #ffffff !important;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.2) !important;
+      border-color: rgba(255, 255, 255, 0.8) !important;
+    }
+  }
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--el-fill-color-lighter);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--el-border-color-dark);
+  border-radius: 4px;
+  transition: background 0.3s;
+
+  &:hover {
+    background: var(--el-border-color-darker);
+  }
+}
+
+// 链接样式 - 增强交互效果
+a {
+  color: #000000;
+  text-decoration: none;
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  position: relative;
+
+  &:hover {
+    color: #333333;
+    transform: translateY(-3px) scale(1.02);
+    filter: brightness(1.2) drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #000000;
+    transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  &:hover::after {
+    width: 100%;
+  }
+}
+
+// 暗色主题链接
+.dark a {
+  color: #ffffff;
+  
+  &:hover {
+    color: #cccccc;
+    transform: translateY(-3px) scale(1.02);
+    filter: brightness(1.2) drop-shadow(0 4px 8px rgba(255,255,255,0.2));
+  }
+  
+  &::after {
+    background-color: #ffffff;
+  }
+}
+
+// 图片样式 - 增强交互效果
+img {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &:hover {
+    transform: scale(1.1) rotate(2deg) translateY(-5px);
+    filter: brightness(1.15) contrast(1.15) saturate(1.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  }
+}
+
+// 按钮样式增强 - 更多圆角和丝滑交互
+.el-button {
+  border-radius: 16px !important;
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transform: translateZ(0); // 启用硬件加速
+  
+  &:hover {
+    transform: translateY(-4px) scale(1.05) rotate(1deg);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+    filter: brightness(1.15);
+  }
+
+  &:active {
+    transform: translateY(-2px) scale(0.95);
+    transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+}
+
+// 卡片样式增强 - 更多圆角和丝滑交互
+.el-card {
+  border-radius: 20px !important;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateZ(0);
+  
+  &:hover {
+    transform: translateY(-10px) scale(1.03) rotate(0.5deg);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    filter: brightness(1.02);
+  }
+}
+
+// 上传组件样式 - 增强交互效果
+.el-upload {
+  border-radius: 16px !important;
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transform: translateZ(0);
+  
+  &:hover {
+    transform: scale(1.05) translateY(-4px) rotate(1deg);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  }
+  
+  .el-upload-dragger {
+    border-radius: 16px !important;
+    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent);
+      transition: left 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    &:hover {
+      border-color: #000000;
+      background-color: #fafafa;
+      transform: translateY(-3px) scale(1.02);
+      filter: brightness(1.05);
+      
+      &::before {
+        left: 100%;
+      }
+    }
+    
+    &.is-dragover {
+      transform: scale(1.08) translateY(-6px) rotate(-1deg);
+      border-color: #000000;
+      background-color: #f8f8f8;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.2);
+      animation: dragover-pulse 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite alternate;
+      
+      &::before {
+        left: 100%;
+      }
+    }
+  }
+}
+
+@keyframes dragover-pulse {
+  0% { transform: scale(1.08) translateY(-6px) rotate(-1deg); }
+  100% { transform: scale(1.12) translateY(-8px) rotate(1deg); }
+}
+
+// 进度条样式 - 增强动画效果
+.el-progress {
+  .el-progress-bar__outer {
+    border-radius: 12px !important;
+    background-color: #f0f0f0;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .el-progress-bar__inner {
+    border-radius: 12px !important;
+    transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    background: linear-gradient(90deg, #000000, #333333, #000000);
+    background-size: 200% 100%;
+    animation: progressShine 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      animation: progressGlow 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+    }
+  }
+}
+
+@keyframes progressShine {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes progressGlow {
+  0%, 100% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+}
+
+// 表格样式 - 非线性增强交互效果
+.el-table {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  &:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px) scale(1.01);
+  }
+  
+  .el-table__header {
+    th {
+      background-color: #f8f8f8;
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #000000, #333333, #000000);
+        transform: scaleX(0);
+        transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      }
+      
+      &:hover::after {
+        transform: scaleX(1);
+      }
+    }
+  }
+  
+  .el-table__row {
+    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    &:hover {
+      background-color: #fafafa;
+      transform: scale(1.02) translateX(5px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), inset 4px 0 0 rgba(0, 0, 0, 0.1);
+    }
+    
+    td {
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      
+      &:hover {
+        background-color: #f8f8f8;
+        transform: scale(1.05);
+      }
+    }
+  }
+}
+
+// 对话框样式 - 非线性增强动画效果
+.el-dialog {
+  border-radius: 24px !important;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateZ(0);
+  
+  .el-dialog__header {
+    background: linear-gradient(135deg, #ffffff, #f8f8f8);
+    padding: 20px 24px;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
+    }
+  }
+  
+  .el-dialog__body {
+    padding: 24px;
+    background-color: #ffffff;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .el-dialog__footer {
+    border-radius: 0 0 24px 24px;
+    background: linear-gradient(135deg, #f8f8f8, #ffffff);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+}
+
+// 对话框遮罩动画
+.el-overlay {
+  backdrop-filter: blur(8px);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+// 消息提示样式 - 非线性增强动画效果
+.el-message {
+  border-radius: 16px !important;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18) !important;
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+  transform: translateZ(0);
+  backdrop-filter: blur(10px);
+  
+  &:hover {
+    transform: translateY(-4px) scale(1.05) rotate(1deg);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25) !important;
+    filter: brightness(1.05);
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    pointer-events: none;
+  }
+}
+
+// 通知样式 - 非线性增强动画效果
+.el-notification {
+  border-radius: 20px !important;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.18) !important;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  transform: translateZ(0);
+  backdrop-filter: blur(12px);
+  
+  &:hover {
+    transform: translateX(-8px) scale(1.05) rotate(-1deg);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.25) !important;
+    filter: brightness(1.05);
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    pointer-events: none;
+  }
+  
+  .el-notification__content {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+// 工具提示样式 - 非线性增强动画效果
+.el-tooltip__popper {
+  border-radius: 12px !important;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18) !important;
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+  transform: translateZ(0);
+  
+  &:hover {
+    transform: scale(1.08) rotate(2deg);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.22) !important;
+    filter: brightness(1.1);
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    pointer-events: none;
+  }
+}
+
+// 输入框样式 - 增强交互效果
+.el-input {
+  .el-input__wrapper {
+    border-radius: 12px !important;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+      transition: left 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      
+      &::before {
+        left: 100%;
+      }
+    }
+    
+    &.is-focus {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      border-color: #000000 !important;
+    }
+  }
+}
+
+.el-textarea__inner {
+  border-radius: 12px !important;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  &:focus {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: #000000 !important;
+  }
+}
+
+// 选择器样式 - 增强交互效果
+.el-select {
+  .el-select__wrapper {
+    border-radius: 12px !important;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    &.is-focus {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+// 下拉菜单样式
+.el-select-dropdown {
+  border-radius: 12px !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15) !important;
+  backdrop-filter: blur(10px);
+  
+  .el-select-dropdown__item {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    &:hover {
+      background-color: #f8f8f8;
+      transform: translateX(4px);
+    }
+  }
+}
+
+// 表格样式 - 更多圆角
+.el-table {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+// 分页样式 - 增强交互效果
+.el-pagination {
+  .el-pager li,
+  .btn-prev,
+  .btn-next {
+    border-radius: 8px !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    &:hover {
+      transform: translateY(-1px) scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    &.is-active {
+      background-color: #000000 !important;
+      color: #ffffff !important;
+      transform: translateY(-2px) scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+// 标签样式 - 增强交互效果
+.el-tag {
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  &:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// 进度条样式 - 更多圆角
+.el-progress-bar__outer {
+  border-radius: 12px !important;
+}
+
+.el-progress-bar__inner {
+  border-radius: 12px !important;
+}
+
+// 开关样式 - 增强交互效果
+.el-switch {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+  
+  .el-switch__core {
+    border-radius: 20px !important;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    &::after {
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+  }
+  
+  &.is-checked .el-switch__core {
+    background-color: #000000 !important;
+  }
+}
+
+// 加载样式 - 增强动画效果
+.el-loading-mask {
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  .dark & {
+    background-color: rgba(0, 0, 0, 0.9);
+  }
+  
+  .el-loading-spinner {
+    .circular {
+      animation: loading-rotate 2s linear infinite;
+    }
+    
+    .path {
+      animation: loading-dash 1.5s ease-in-out infinite;
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: 0;
+      stroke-linecap: round;
+    }
+  }
+}
+
+@keyframes loading-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loading-dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
+
+// 自定义工具类
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.ml-4 {
+  margin-left: 16px;
+}
+
+.mr-4 {
+  margin-right: 16px;
+}
+
+.p-4 {
+  padding: 16px;
+}
+
+.rounded {
+  border-radius: 16px;
+}
+
+.rounded-sm {
+  border-radius: 8px;
+}
+
+.rounded-md {
+  border-radius: 12px;
+}
+
+.rounded-lg {
+  border-radius: 20px;
+}
+
+.rounded-xl {
+  border-radius: 24px;
+}
+
+.rounded-2xl {
+  border-radius: 32px;
+}
+
+.rounded-full {
+  border-radius: 50%;
+}
+
+.shadow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.transition {
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+// 响应式工具类
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+  
+  .mobile-full {
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .desktop-hidden {
+    display: none !important;
+  }
+}
+
+// 动画类 - 更丝滑的过渡效果
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+// 新增丝滑动画
+.smooth-scale-enter-active,
+.smooth-scale-leave-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.smooth-scale-enter-from,
+.smooth-scale-leave-to {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+.elastic-enter-active {
+  animation: elastic 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@keyframes elastic {
+  0% {
+    transform: scale(0.6) rotate(-10deg);
+    opacity: 0;
+    filter: blur(5px);
+  }
+  30% {
+    transform: scale(1.3) rotate(20deg);
+    opacity: 0.8;
+    filter: blur(2px);
+  }
+  50% {
+    transform: scale(0.8) rotate(-10deg);
+    opacity: 0.9;
+    filter: blur(0px);
+  }
+  70% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 1;
+  }
+  85% {
+    transform: scale(0.95) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+// 悬浮动画
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-8px) rotate(1deg) scale(1.02);
+  }
+  50% {
+    transform: translateY(-15px) rotate(0deg) scale(1.05);
+  }
+  75% {
+    transform: translateY(-8px) rotate(-1deg) scale(1.02);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+}
+
+// 脉冲动画
+.pulse {
+  animation: pulse 2s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  25% {
+    transform: scale(1.03) rotate(1deg);
+    opacity: 0.9;
+    filter: brightness(1.1);
+  }
+  50% {
+    transform: scale(1.08) rotate(0deg);
+    opacity: 0.8;
+    filter: brightness(1.2);
+  }
+  75% {
+    transform: scale(1.03) rotate(-1deg);
+    opacity: 0.9;
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+// 弹跳动画增强
+.bounce-enter-active {
+  animation: bounce 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@keyframes bounce {
+  0% {
+    transform: scale(0.5) translateY(40px) rotate(-10deg);
+    opacity: 0;
+    filter: blur(3px);
+  }
+  20% {
+    transform: scale(1.1) translateY(-15px) rotate(5deg);
+    opacity: 0.7;
+    filter: blur(1px);
+  }
+  40% {
+    transform: scale(0.9) translateY(-25px) rotate(-3deg);
+    opacity: 0.85;
+    filter: blur(0px);
+  }
+  60% {
+    transform: scale(1.05) translateY(5px) rotate(2deg);
+    opacity: 0.95;
+  }
+  80% {
+    transform: scale(0.98) translateY(-3px) rotate(-1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// 特殊效果 - 纯黑白主题
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(16px);
+    transform: translateY(-2px);
+  }
+  
+  .dark & {
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #ffffff, #f8f8f8, #f0f0f0);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  &:hover {
+    background: linear-gradient(135deg, #f8f8f8, #f0f0f0, #e8e8e8);
+  }
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #000000, #333333, #000000);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 100%;
+  animation: textShine 3s ease-in-out infinite;
+}
+
+@keyframes textShine {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+// 磁性效果
+.magnetic-effect {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  &:hover {
+    transform: scale(1.05) rotate(1deg);
+    filter: brightness(1.1);
+  }
+}
+
+// 呼吸效果
+.breathing-effect {
+  animation: breathing 4s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+@keyframes breathing {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: blur(0px) brightness(1);
+  }
+  25% {
+    transform: scale(1.02) rotate(1deg);
+    opacity: 0.95;
+    filter: blur(0.5px) brightness(1.05);
+  }
+  50% {
+    transform: scale(1.08) rotate(0deg);
+    opacity: 0.85;
+    filter: blur(1px) brightness(1.1);
+  }
+  75% {
+    transform: scale(1.02) rotate(-1deg);
+    opacity: 0.95;
+    filter: blur(0.5px) brightness(1.05);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: blur(0px) brightness(1);
+  }
+}
+
+// 波纹效果
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.1);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  &:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+}
