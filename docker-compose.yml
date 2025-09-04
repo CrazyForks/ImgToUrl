@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8'
 
 services:
   # MySQL 数据库
@@ -20,7 +20,7 @@ services:
     networks:
       - image-host-network
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$MYSQL_ROOT_PASSWORD || exit 1"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
