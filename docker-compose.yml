@@ -9,6 +9,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root123}
       MYSQL_DATABASE: ${DB_NAME:-image_host}
+      MYSQL_USER: ${DB_USER:-imagehost}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-root123}
     ports:
       - "3306:3306"
     volumes:
@@ -18,9 +20,11 @@ services:
     networks:
       - image-host-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
       retries: 10
+      start_period: 30s
 
   # Redis 缓存 (可选)
   redis:
