@@ -34,6 +34,24 @@
 - **Cloudflare R2** - 对象存储服务
 - **Redis** - 缓存和会话存储
 
+## 📚 文档索引
+
+### 🚀 部署文档
+- **[VPS部署指南](VPS_DEPLOY_GUIDE.md)** - 完整的VPS部署教程，包含Docker和传统部署方式
+- **[传统部署方案](TRADITIONAL_DEPLOY_GUIDE.md)** - 不使用Docker的手动部署指南
+- **[安全配置指南](SECURITY_GUIDE.md)** - 防火墙、SSH、应用安全等配置
+
+### 🔧 配置文档
+- **[SSL证书配置](SSL_SETUP_GUIDE.md)** - Let's Encrypt和商业证书配置
+- **[域名配置指南](DOMAIN_SETUP_GUIDE.md)** - DNS解析和Cloudflare配置
+- **[R2存储配置](R2_CONFIG_GUIDE.md)** - Cloudflare R2对象存储配置
+- **[GitHub部署指南](GITHUB_DEPLOY_GUIDE.md)** - GitHub Actions自动部署
+
+### ⚙️ 配置文件
+- **[docker-compose.prod.yml](docker-compose.prod.yml)** - 生产环境Docker Compose配置
+- **[.env.prod](.env.prod)** - 生产环境变量模板
+- **[deploy-vps.sh](deploy-vps.sh)** - VPS一键部署脚本
+
 ## 📦 项目结构
 
 ```
@@ -66,8 +84,18 @@
 │   ├── tsconfig.json      # TypeScript 配置
 │   ├── vite.config.ts     # Vite 配置
 │   └── index.html         # HTML 模板
-├── docs/                   # 文档
+├── nginx/                  # Nginx配置
+│   ├── nginx.conf         # 主配置文件
+│   └── conf.d/            # 站点配置
+├── docs/                   # 部署和配置文档
+│   ├── VPS_DEPLOY_GUIDE.md
+│   ├── SSL_SETUP_GUIDE.md
+│   ├── SECURITY_GUIDE.md
+│   └── ...
 ├── scripts/               # 部署脚本
+│   └── deploy-vps.sh
+├── docker-compose.yml     # 开发环境配置
+├── docker-compose.prod.yml # 生产环境配置
 └── README.md              # 项目说明
 ```
 
@@ -170,7 +198,44 @@ npm run dev
 
 ### 4. 访问应用
 
-打开浏览器访问 `http://localhost:3000`，即可使用图床转换系统。
+#### 🌐 本地开发访问
+
+**前端界面：**
+```
+http://localhost:3000
+```
+
+**后端API：**
+```
+http://localhost:8080/api/
+```
+
+**健康检查：**
+```bash
+# 检查后端服务
+curl http://localhost:8080/api/health
+
+# 检查前端服务
+curl http://localhost:3000
+```
+
+#### 🚀 生产环境访问
+
+部署到VPS后的访问方式：
+
+**Web访问：**
+```
+http://您的服务器IP地址
+# 例如：http://192.168.1.100
+```
+
+**API访问：**
+```
+http://您的服务器IP地址/api/
+# 例如：http://192.168.1.100/api/health
+```
+
+> **提示：** 详细的部署和访问说明请参考 [VPS部署指南](VPS_DEPLOY_GUIDE.md)
 
 ## 📖 API 文档
 
@@ -257,17 +322,51 @@ Redis 用于：
 
 ## 🚀 部署
 
-### Docker 部署
+### 📋 部署指南
+
+我们提供了完整的部署解决方案，包含详细的配置和安全设置：
+
+- **[VPS部署指南](VPS_DEPLOY_GUIDE.md)** - 完整的VPS部署教程
+- **[Docker部署配置](docker-compose.prod.yml)** - 生产环境Docker Compose配置
+- **[传统部署方案](TRADITIONAL_DEPLOY_GUIDE.md)** - 不使用Docker的传统部署方式
+- **[SSL证书配置](SSL_SETUP_GUIDE.md)** - HTTPS证书配置指南
+- **[域名配置指南](DOMAIN_SETUP_GUIDE.md)** - 域名和DNS配置
+- **[安全配置指南](SECURITY_GUIDE.md)** - 防火墙和安全设置
+- **[R2存储配置](R2_CONFIG_GUIDE.md)** - Cloudflare R2配置教程
+
+### 🐳 Docker 部署（推荐）
+
+#### 快速部署
 
 ```bash
-# 构建镜像
-docker-compose build
+# 克隆项目
+git clone https://github.com/roseforljh/ImgToUrl.git
+cd ImgToUrl
 
-# 启动服务
-docker-compose up -d
+# 配置环境变量
+cp .env.prod .env
+nano .env  # 修改配置
+
+# 一键部署
+bash deploy-vps.sh
 ```
 
-### 手动部署
+#### 手动部署
+
+```bash
+# 使用生产环境配置
+docker-compose -f docker-compose.prod.yml up -d
+
+# 查看服务状态
+docker-compose -f docker-compose.prod.yml ps
+
+# 查看日志
+docker-compose -f docker-compose.prod.yml logs -f
+```
+
+### 🛠️ 传统部署
+
+如果您不想使用Docker，可以参考 **[传统部署方案](TRADITIONAL_DEPLOY_GUIDE.md)** 进行手动部署：
 
 #### 后端部署
 
@@ -290,6 +389,13 @@ npm run build
 # 部署到 Web 服务器
 cp -r dist/* /var/www/html/
 ```
+
+### 🔧 部署后配置
+
+1. **配置域名**: 参考 [域名配置指南](DOMAIN_SETUP_GUIDE.md)
+2. **启用HTTPS**: 参考 [SSL证书配置](SSL_SETUP_GUIDE.md)
+3. **安全加固**: 参考 [安全配置指南](SECURITY_GUIDE.md)
+4. **配置R2存储**: 参考 [R2存储配置](R2_CONFIG_GUIDE.md)
 
 ## 🔒 安全特性
 
