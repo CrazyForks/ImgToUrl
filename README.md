@@ -17,13 +17,13 @@
 - 上传  
 ![](https://qone.kuz7.com/uploads/images/2025/09/07/9e63dd82-c1f5-4c79-a5d5-eb457dfc8e7e.png)
 
-- 图库  
+- 统计  
 ![](https://qone.kuz7.com/uploads/images/2025/09/07/803aa069-6d7a-436a-86ad-ab121dd485ae.png)
 
-- 统计  
+- 设置  
 ![](https://qone.kuz7.com/uploads/images/2025/09/07/78916c57-538d-49d8-9b82-8c14d65b4946.png)
 
-- 设置  
+- 图库  
 ![](https://qone.kuz7.com/uploads/images/2025/09/07/e74a7fa2-faf0-44f8-9086-77c151a8c678.png)
 
 ## 技术栈
