@@ -343,9 +343,17 @@ const handleFiles = async (files: File[]) => {
   }
 }
 
-// 复制链接
+ // 复制链接
+const toAbsoluteUrl = (u: string) => {
+  try {
+    return new URL(u, window.location.origin).href
+  } catch {
+    return u
+  }
+}
 const copyUrl = async (url: string) => {
-  const success = await uploadStore.copyToClipboard(url)
+  const abs = toAbsoluteUrl(url)
+  const success = await uploadStore.copyToClipboard(abs)
   if (success) {
     ElMessage.success('链接已复制到剪贴板')
   } else {
@@ -353,9 +361,10 @@ const copyUrl = async (url: string) => {
   }
 }
 
-// 复制 Markdown 格式
+ // 复制 Markdown 格式
 const copyMarkdown = async (image: ImageInfo) => {
-  const markdown = `![${image.original_name}](${image.public_url})`
+  const abs = toAbsoluteUrl(image.public_url)
+  const markdown = `![${image.original_name}](${abs})`
   const success = await uploadStore.copyToClipboard(markdown)
   if (success) {
     ElMessage.success('Markdown 格式已复制')
@@ -364,9 +373,10 @@ const copyMarkdown = async (image: ImageInfo) => {
   }
 }
 
-// 复制 HTML 格式
+ // 复制 HTML 格式
 const copyHtml = async (image: ImageInfo) => {
-  const html = `<img src="${image.public_url}" alt="${image.original_name}" />`
+  const abs = toAbsoluteUrl(image.public_url)
+  const html = `<img src="${abs}" alt="${image.original_name}" />`
   const success = await uploadStore.copyToClipboard(html)
   if (success) {
     ElMessage.success('HTML 格式已复制')
