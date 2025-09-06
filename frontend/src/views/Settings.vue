@@ -38,7 +38,11 @@
 
           <el-table :data="codes" size="small" style="margin-top:12px">
             <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column prop="code" label="游客码" />
+            <el-table-column label="游客码">
+              <template #default="{ row }">
+                <span class="copy-code" @click="copyCode(row.code)">{{ row.code }}</span>
+              </template>
+            </el-table-column>
             <el-table-column label="过期时间">
               <template #default="{ row }">
                 <span v-if="row.expires_at">{{ new Date(row.expires_at).toLocaleString() }}</span>
@@ -148,6 +152,26 @@ const onDeleteCode = async (id: number) => {
     ElMessage.error(res.error || '删除失败')
   }
 }
+const copyCode = async (code: string) => {
+  try {
+    await navigator.clipboard.writeText(code)
+    ElMessage.success('已复制')
+  } catch (e) {
+    try {
+      const ta = document.createElement('textarea')
+      ta.value = code
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+      ElMessage.success('已复制')
+    } catch {
+      ElMessage.error('复制失败')
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -168,5 +192,15 @@ const onDeleteCode = async (id: number) => {
   transform: none !important;
   filter: none !important;
   box-shadow: none;
+}
+.copy-code {
+  cursor: pointer;
+  color: #93c5fd; /* 提示可点击 */
+  text-decoration: underline dotted;
+}
+.copy-code:hover {
+  color: #bfdbfe;
+  filter: none !important;
+  transform: none !important;
 }
 </style>
