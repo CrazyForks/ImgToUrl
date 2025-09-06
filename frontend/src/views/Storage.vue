@@ -22,7 +22,15 @@
         </section>
 
         <section class="table-section">
-          <el-table :data="pagedItems" style="width: 100%" v-loading="loading" :row-class-name="'no-hover-row'">
+          <el-table
+            :data="pagedItems"
+            v-loading="loading"
+            style="width: 100%"
+            :style="tableStyle"
+            :cell-style="forceTransparentCellStyle"
+            :header-cell-style="forceTransparentCellStyle"
+            :row-class-name="'no-hover-row'"
+          >
             <el-table-column label="预览" width="90">
               <template #default="{ row }">
                 <div class="thumb">
@@ -127,6 +135,14 @@ const pagedItems = computed(() => {
   const start = (page.value - 1) * pageSize.value
   return filtered.value.slice(start, start + pageSize.value)
 })
+
+const tableStyle = computed(() => ({
+  '--el-table-row-hover-bg-color': 'transparent',
+  '--el-table-current-row-bg-color': 'transparent',
+  '--el-table-bg-color': 'transparent',
+  '--el-table-header-bg-color': 'transparent'
+}))
+const forceTransparentCellStyle = () => ({ backgroundColor: 'transparent' })
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B'
