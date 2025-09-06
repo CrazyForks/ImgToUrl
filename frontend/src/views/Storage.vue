@@ -52,7 +52,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="操作" width="260" fixed="right">
+            <el-table-column label="操作" width="300" fixed="right">
               <template #default="{ row }">
                 <div class="ops">
                   <el-button size="small" @click="copyLink(row)">
@@ -281,7 +281,13 @@ onMounted(fetchList)
   }
   .ops {
     display: flex;
-    gap: 0.5rem;
+    gap: 8px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .ops :deep(.el-button) {
+    padding: 6px 8px;
   }
 }
 
@@ -299,8 +305,7 @@ onMounted(fetchList)
 
 /* Stabilize table layout and prevent hover flicker */
 .table-section {
-  will-change: transform;
-  transform: translateZ(0);
+  contain: paint;
 }
 .table-section .thumb,
 .table-section .thumb img {
@@ -321,5 +326,6 @@ onMounted(fetchList)
 }
 .table-section .ops {
   white-space: nowrap;
+  overflow: hidden;
 }
 </style>
