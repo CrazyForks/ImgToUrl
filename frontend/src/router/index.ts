@@ -83,6 +83,12 @@ router.beforeEach((to, from, next) => {
   }
   const isPublic = (to.meta as any)?.public === true
   const token = localStorage.getItem('token')
+  const username = (localStorage.getItem('username') || '').toLowerCase()
+  const isGuest = username.startsWith('guest')
+  if (to.path === '/settings' && isGuest) {
+    next({ path: '/' })
+    return
+  }
   if (!isPublic && !token && to.path !== '/login') {
     next({ path: '/login', query: { redirect: to.fullPath } })
     return
