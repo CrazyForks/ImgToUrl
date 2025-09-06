@@ -1,32 +1,38 @@
-# Node / Frontend
+# Node
 frontend/node_modules/
 frontend/dist/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+frontend/.vite/
+frontend/.cache/
+frontend/.temp/
+frontend/npm-debug.log*
 
-# Env & Secrets
-.env
-*.env
-backend/.env
-frontend/.env
-
-# Build cache / editor
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-
-# Uploads / Generated assets
-backend/uploads/
-backend/static/
-public/uploads/
-
-# Go build artifacts
-backend/bin/
-backend/tmp/
+# Go build
+backend/image-host-backend
+backend/*.exe
+backend/coverage/
+backend/.cache/
+backend/*.test
 *.out
 
-# Nginx certs (if any)
+# Uploads and env
+backend/uploads/
+**/.env
+*.env
+!.env.example
+!backend/.env.example
+
+# Logs
+logs/
+*.log
+
+# Nginx SSL and certs
 nginx/ssl/
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
