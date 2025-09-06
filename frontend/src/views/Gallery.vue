@@ -1013,4 +1013,23 @@ onMounted(async () => {
   border-radius: 0 0 16px 16px;
 }
 
+:deep(.preview-dialog) {
+  /* 覆盖对话框本体为深色，解决默认白底 */
+  background: linear-gradient(135deg, #0f1115 0%, #1a1f2b 60%, #1f2a4a 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  border-radius: 16px;
+}
+
+:deep(.preview-dialog .el-dialog__body) {
+  background: transparent;
+}
+
+:deep(.preview-dialog .el-dialog__header),
+:deep(.preview-dialog .el-dialog__footer) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 </style>
