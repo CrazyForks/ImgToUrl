@@ -54,8 +54,8 @@
 ### 一键部署
 ```bash
 # 克隆项目
-git clone <repository-url>
-cd 图床转换
+git clone https://github.com/roseforljh/ImgToUrl.git
+cd ImgToUrl
 
 # 启动所有服务
 docker-compose up -d
