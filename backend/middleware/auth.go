@@ -42,7 +42,7 @@ func authRequired() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			return
 		}
-		if claims.ExpiresAt != nil && time.Now().After(claims.ExpiresAt.Time) {
+		if claims.RegisteredClaims.ExpiresAt != nil && time.Now().After(claims.RegisteredClaims.ExpiresAt.Time) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token expired"})
 			return
 		}

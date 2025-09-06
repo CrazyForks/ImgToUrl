@@ -2,72 +2,102 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
-	"image-host/databaseware"
-	"image-host/mimdlewor
+	"image-host/config"
+	"image-host/database"
+	"image-host/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
+
 type AuthController struct{}
 
 var Auth = &AuthController{}
 
+type loginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type changePwdRequest struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
+
 func (a *AuthController) Login(c *gin.Context) {
-	type req struct {
-frnn"(wd*AushCsotsollr)Log(c *in.Ctext) {	if err := c.ShouldBindJSON(&r); err != nil || r.Username == "" || r.Password == "" {
-			c.JrtaadRequest, gin.H{"error": "Invalid request"})
-		Unenameuename
-		
-		 "Invalid username or password"})
-		retur
-	}
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Paswoqud,t []byte(r.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
-		return
-	token, err := middleware.GenerateToken(user.Username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"erInvalid uor": "Failed to genn"})
+	var req loginRequest
+	if err := c.ShouldBindJSON(&req); err != nil || req.Username == "" || req.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid credentials"})
 		return
 	}
-	c.Jerr := SON(http.StatusOK, gin.H{;err 
-		"success": true,Invalid u
-		"data": gin.H{
-			"token":    token,
-	k, middwGa trtnSTisucua:rUs"sram
+	var user models.User
+	if err := database.DB.Where("username = ?", req.Username).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Username or password incorrect"})
+		return
+	}
+	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)) != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Username or password incorrect"})
+		return
+	}
+
+	exp := time.Now().Add(time.Duration(config.AppConfig.JWTExpireHours) * time.Hour)
+	claims := jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(exp),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"username": user.Username,
+		"exp":      claims.ExpiresAt.Unix(),
+		"iat":      claims.IssuedAt.Unix(),
 	})
-}eerate
+	tokenStr, err := token.SignedString([]byte(config.AppConfig.JWTSecret))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to sign token"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"token":    tokenStr,
+			"username": user.Username,
+			"expires":  exp.Unix(),
+		},
+	})
+}
+
+func (a *AuthController) Me(c *gin.Context) {
+	username := c.GetString("username")
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"username": username}})
+}
 
 func (a *AuthController) ChangePassword(c *gin.Context) {
-	type req struct {
-		OldPassword string `json:"old_password"`
-		NewPassword string `json:"new_password"`
-	}
-	var r req
-	ic.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	var req changePwdRequest
+	if err := c.ShouldBindJSON(&req); err != nil || req.OldPassword == "" || req.NewPassword == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payload"})
 		return
 	}
 	username := c.GetString("username")
 	var user models.User
-	if err : tabase.DStringB.Where("username = ?", username).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-		return
-	}    err := bcrypt.Compac.JSON(http.StatusUnauthorized, gin.H{"error": "Old password incorrect"})
+	if err := database.DB.Where("username = ?", username).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-	hashed, err := bcrypt.GenerateFromPassword([]byte(r.NewPassword), bcrypt.DefaultCost)
+	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Old password incorrect"})
+		return
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
-	typeJSON(struht {
-		OldPtssword strip. `json:"old_password"`
-		NSwtassword string `json:"new_passaort"`
-	}
-	var r rsInalServerError, gin.H{"error": "Failed to hash password"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to set new password"})
 		return
-	}request
-	user.PasswordHash = string(hashed)
+	}
+	user.PasswordHash = string(hash)
 	if err := database.DB.Save(&user).Error; err != nil {
-		c.JSON(p.StatustSIringnternalServe		return
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save new password"})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true})
-}ser o fun
- err :=; errUnthorizdedhahedupdt
+}
