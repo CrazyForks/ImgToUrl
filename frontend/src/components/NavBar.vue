@@ -28,7 +28,7 @@
         </router-link>
 
         <template v-if="isAuthed">
-          <router-link to="/settings" class="nav-link" active-class="active">
+          <router-link v-if="!isGuest" to="/settings" class="nav-link" active-class="active">
             设置
           </router-link>
           <a href="javascript:void(0)" class="nav-link" @click.prevent="logout">退出</a>
@@ -50,6 +50,7 @@ import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const isAuthed = computed(() => !!auth.token)
+const isGuest = computed(() => (auth.user?.username || '').toLowerCase().startsWith('guest'))
 const logout = () => {
   auth.clearAuth()
   location.href = '/login'
