@@ -330,6 +330,7 @@ import {
 } from '@element-plus/icons-vue'
 import NavBar from '@/components/NavBar.vue'
 import { useUploadStore, type ImageInfo } from '@/stores/upload'
+import { listImages } from '@/api/images'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -351,9 +352,10 @@ const currentPage = ref(1)
 const pageSize = ref(20)
 const previewVisible = ref(false)
 const currentPreviewImage = ref<ImageInfo | null>(null)
+const galleryImages = ref<ImageInfo[]>([])
 
 // 计算属性
-const uploadedImages = computed(() => uploadStore.uploadedImages)
+const uploadedImages = computed(() => galleryImages.value)
 
 // 过滤和排序后的图片
 const filteredImages = computed(() => {
@@ -495,6 +497,11 @@ watch([searchQuery, sortBy, sortOrder], () => {
 onMounted(async () => {
   loading.value = true
   try {
+    // 从后端拉取画廊数据，独立于上传历史
+    const res = await listImages(1, 1000)
+    if (res.success && res.data) {
+      galleryImages.value = res.data.items || []
+    }
     await uploadStore.fetchStats()
   } catch (error) {
     console.error('加载数据失败:', error)
