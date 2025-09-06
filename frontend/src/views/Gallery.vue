@@ -1032,4 +1032,32 @@ onMounted(async () => {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+/* 彻底去除预览弹窗内部白底（body/滚动容器/自定义容器） */
+:deep(.el-dialog.preview-dialog) {
+  background: linear-gradient(135deg, #0f1115 0%, #1a1f2b 60%, #1f2a4a 100%) !important;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+:deep(.el-dialog.preview-dialog .el-dialog__body),
+:deep(.el-dialog.preview-dialog .el-scrollbar__wrap),
+:deep(.el-dialog.preview-dialog .el-scrollbar__view),
+:deep(.el-dialog.preview-dialog .preview-container) {
+  background: transparent !important;
+}
+:deep(.el-dialog.preview-dialog .el-dialog__header),
+:deep(.el-dialog.preview-dialog .el-dialog__footer) {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+
+/* 预览图片区域也统一深色，以免图片边缘看见白色留白 */
+:deep(.el-dialog.preview-dialog .preview-container) {
+  padding: 0; /* 减少白边观感 */
+}
+:deep(.el-dialog.preview-dialog .preview-image) {
+  display: block;
+  margin: 0 auto;
+  background: transparent !important;
+}
+
 </style>
