@@ -35,6 +35,14 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/storage',
+    name: 'Storage',
+    component: () => import('@/views/Storage.vue'),
+    meta: {
+      title: '存储内容'
+    }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),

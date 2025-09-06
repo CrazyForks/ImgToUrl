@@ -1,30 +1,6 @@
 <template>
   <div class="gallery-container">
-    <!-- 导航栏 -->
-    <nav class="navbar">
-      <div class="nav-content">
-        <router-link to="/" class="logo">
-          <el-icon :size="32" color="#fff">
-            <Picture />
-          </el-icon>
-          <span class="logo-text">图床转换系统</span>
-        </router-link>
-        <div class="nav-menu">
-          <router-link to="/" class="nav-link">
-            <el-icon><House /></el-icon>
-            首页
-          </router-link>
-          <router-link to="/upload" class="nav-link">
-            <el-icon><Upload /></el-icon>
-            上传图片
-          </router-link>
-          <router-link to="/stats" class="nav-link">
-            <el-icon><DataAnalysis /></el-icon>
-            统计信息
-          </router-link>
-        </div>
-      </div>
-    </nav>
+    <NavBar />
 
     <!-- 主要内容 -->
     <main class="main-content">
@@ -352,6 +328,7 @@ import {
   Download,
   Document
 } from '@element-plus/icons-vue'
+import NavBar from '@/components/NavBar.vue'
 import { useUploadStore, type ImageInfo } from '@/stores/upload'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
@@ -464,8 +441,10 @@ const previewImage = (image: ImageInfo) => {
   previewVisible.value = true
 }
 
+const toAbsolute = (url: string) => (url?.startsWith('http') ? url : `${window.location.origin}${url}`)
 const copyUrl = async (url: string) => {
-  const success = await uploadStore.copyToClipboard(url)
+  const abs = toAbsolute(url)
+  const success = await uploadStore.copyToClipboard(abs)
   if (success) {
     ElMessage.success('链接已复制到剪贴板')
   } else {
@@ -476,7 +455,7 @@ const copyUrl = async (url: string) => {
 const copyMarkdown = async (image: ImageInfo | null) => {
   if (!image) return
   
-  const markdown = `![${image.original_name}](${image.public_url})`
+  const markdown = `![${image.original_name}](${toAbsolute(image.public_url)})`
   const success = await uploadStore.copyToClipboard(markdown)
   if (success) {
     ElMessage.success('Markdown 格式已复制')
@@ -489,7 +468,7 @@ const downloadImage = (image: ImageInfo | null) => {
   if (!image) return
   
   const link = document.createElement('a')
-  link.href = image.public_url
+  link.href = toAbsolute(image.public_url)
   link.download = image.original_name
   link.target = '_blank'
   document.body.appendChild(link)

@@ -52,6 +52,10 @@ func SetupRoutes() *gin.Engine {
 		// 图片上传相关路由
 		images := api.Group("/images")
 		{
+			// 列表与删除
+			images.GET("/", controllers.Upload.ListImages)
+			images.DELETE("/:uuid", controllers.Upload.DeleteImage)
+
 			// 上传图片
 			images.POST("/upload", controllers.Upload.UploadImage)
 

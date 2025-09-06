@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"image-host/config"
@@ -102,15 +103,15 @@ func (uc *UploadController) UploadImage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"id":           image.ID,
-			"uuid":         image.UUID,
+			"id":            image.ID,
+			"uuid":          image.UUID,
 			"original_name": image.OriginalName,
-			"file_size":    image.FileSize,
-			"mime_type":    image.MimeType,
-			"width":        image.Width,
-			"height":       image.Height,
-			"public_url":   image.PublicURL,
-			"created_at":   image.CreatedAt,
+			"file_size":     image.FileSize,
+			"mime_type":     image.MimeType,
+			"width":         image.Width,
+			"height":        image.Height,
+			"public_url":    image.PublicURL,
+			"created_at":    image.CreatedAt,
 		},
 	})
 }
@@ -204,9 +205,9 @@ func (uc *UploadController) BatchUpload(c *gin.Context) {
 		file, err := header.Open()
 		if err != nil {
 			errors = append(errors, gin.H{
-				"index": i,
+				"index":    i,
 				"filename": header.Filename,
-				"error": "Failed to open file",
+				"error":    "Failed to open file",
 			})
 			continue
 		}
@@ -214,9 +215,9 @@ func (uc *UploadController) BatchUpload(c *gin.Context) {
 		// 验证图片
 		if err := services.ImageSvc.ValidateImage(header, config.AppConfig.AllowedTypes, config.AppConfig.MaxFileSize); err != nil {
 			errors = append(errors, gin.H{
-				"index": i,
+				"index":    i,
 				"filename": header.Filename,
-				"error": err.Error(),
+				"error":    err.Error(),
 			})
 			file.Close()
 			continue
@@ -226,9 +227,9 @@ func (uc *UploadController) BatchUpload(c *gin.Context) {
 		processedImage, err := services.ImageSvc.ProcessImage(file, header)
 		if err != nil {
 			errors = append(errors, gin.H{
-				"index": i,
+				"index":    i,
 				"filename": header.Filename,
-				"error": "Failed to process image",
+				"error":    "Failed to process image",
 			})
 			file.Close()
 			continue
@@ -241,9 +242,9 @@ func (uc *UploadController) BatchUpload(c *gin.Context) {
 		r2Key, publicURL, err := services.R2.UploadFile(file, header)
 		if err != nil {
 			errors = append(errors, gin.H{
-				"index": i,
+				"index":    i,
 				"filename": header.Filename,
-				"error": "Failed to upload to storage",
+				"error":    "Failed to upload to storage",
 			})
 			file.Close()
 			continue
@@ -268,9 +269,9 @@ func (uc *UploadController) BatchUpload(c *gin.Context) {
 			// 如果数据库保存失败，删除已上传的文件
 			services.R2.DeleteFile(r2Key)
 			errors = append(errors, gin.H{
-				"index": i,
+				"index":    i,
 				"filename": header.Filename,
-				"error": "Failed to save image metadata",
+				"error":    "Failed to save image metadata",
 			})
 			file.Close()
 			continue
@@ -278,16 +279,16 @@ func (uc *UploadController) BatchUpload(c *gin.Context) {
 
 		// 添加到成功结果
 		results = append(results, gin.H{
-			"index":        i,
-			"id":           image.ID,
-			"uuid":         image.UUID,
+			"index":         i,
+			"id":            image.ID,
+			"uuid":          image.UUID,
 			"original_name": image.OriginalName,
-			"file_size":    image.FileSize,
-			"mime_type":    image.MimeType,
-			"width":        image.Width,
-			"height":       image.Height,
-			"public_url":   image.PublicURL,
-			"created_at":   image.CreatedAt,
+			"file_size":     image.FileSize,
+			"mime_type":     image.MimeType,
+			"width":         image.Width,
+			"height":        image.Height,
+			"public_url":    image.PublicURL,
+			"created_at":    image.CreatedAt,
 		})
 
 		// 更新统计信息
@@ -305,6 +306,102 @@ func (uc *UploadController) BatchUpload(c *gin.Context) {
 			"results":    results,
 			"errors":     errors,
 		},
+	})
+}
+
+/*
+*
+ListImages 分页获取图片列表
+GET /api/v1/images?page=1&page_size=20
+响应：
+
+	{
+	  "success": true,
+	  "data": { "items": [...], "total": 123, "page": 1, "page_size": 20 }
+	}
+*/
+func (uc *UploadController) ListImages(c *gin.Context) {
+	pageStr := c.DefaultQuery("page", "1")
+	sizeStr := c.DefaultQuery("page_size", "20")
+
+	page, _ := strconv.Atoi(pageStr)
+	size, _ := strconv.Atoi(sizeStr)
+	if page < 1 {
+		page = 1
+	}
+	if size < 1 || size > 100 {
+		size = 20
+	}
+
+	var total int64
+	if err := database.DB.Model(&models.Image{}).Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to count images",
+			"code":  "DATABASE_ERROR",
+		})
+		return
+	}
+
+	var images []models.Image
+	if err := database.DB.
+		Order("created_at DESC").
+		Offset((page - 1) * size).
+		Limit(size).
+		Find(&images).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch images",
+			"code":  "DATABASE_ERROR",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"items":     images,
+			"total":     total,
+			"page":      page,
+			"page_size": size,
+		},
+	})
+}
+
+// DeleteImage 删除图片（先删文件，再硬删记录）
+func (uc *UploadController) DeleteImage(c *gin.Context) {
+	u := c.Param("uuid")
+	if u == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Missing image UUID",
+			"code":  "INVALID_UUID",
+		})
+		return
+	}
+
+	var image models.Image
+	if err := database.DB.Where("uuid = ?", u).First(&image).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Image not found",
+			"code":  "NOT_FOUND",
+		})
+		return
+	}
+
+	// 删除本地文件（忽略不存在错误）
+	if image.R2Key != "" {
+		_ = services.R2.DeleteFile(image.R2Key)
+	}
+
+	// 硬删除数据库记录
+	if err := database.DB.Unscoped().Delete(&image).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete image record",
+			"code":  "DATABASE_ERROR",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 	})
 }
 

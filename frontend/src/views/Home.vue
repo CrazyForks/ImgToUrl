@@ -1,30 +1,6 @@
 <template>
   <div class="home-container">
-    <!-- 导航栏 -->
-    <nav class="navbar">
-      <div class="nav-content">
-        <div class="logo">
-          <el-icon :size="32" color="#fff">
-            <Picture />
-          </el-icon>
-          <span class="logo-text">图床转换系统</span>
-        </div>
-        <div class="nav-menu">
-          <router-link to="/upload" class="nav-link">
-            <el-icon><Upload /></el-icon>
-            上传图片
-          </router-link>
-          <router-link to="/gallery" class="nav-link">
-            <el-icon><Picture /></el-icon>
-            图片画廊
-          </router-link>
-          <router-link to="/stats" class="nav-link">
-            <el-icon><DataAnalysis /></el-icon>
-            统计信息
-          </router-link>
-        </div>
-      </div>
-    </nav>
+    <NavBar />
 
     <!-- 主要内容 -->
     <main class="main-content">
@@ -154,6 +130,7 @@ import {
   Calendar,
   UploadFilled
 } from '@element-plus/icons-vue'
+import NavBar from '@/components/NavBar.vue'
 import { useUploadStore } from '@/stores/upload'
 
 const router = useRouter()
