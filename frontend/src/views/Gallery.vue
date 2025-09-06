@@ -1134,4 +1134,36 @@ onMounted(async () => {
   background: #0f1115 !important;
 }
 
+/* 进一步覆盖 Element Plus 白色系变量，彻底去除预览内部白底 */
+:deep(.el-dialog.preview-dialog),
+:deep(.preview-dialog .el-dialog),
+:deep(.el-overlay-dialog.preview-dialog .el-dialog) {
+  /* 统一暗色变量（关键：这两个常导致白底） */
+  --el-bg-color: #0f1115 !important;
+  --el-fill-color-blank: #0f1115 !important;
+  --el-color-white: #0f1115 !important;
+  --el-fill-color-light: #111827 !important;
+  --el-dialog-bg-color: #0f1115 !important;
+  --el-text-color-primary: #ffffff !important;
+  --el-text-color-regular: #e5e7eb !important;
+  --el-border-color: rgba(255,255,255,0.12) !important;
+}
+
+/* body/滚动容器强制暗色（避免变量未生效时的兜底） */
+:deep(.el-dialog.preview-dialog .el-dialog__body),
+:deep(.preview-dialog .el-dialog .el-dialog__body),
+:deep(.el-overlay-dialog.preview-dialog .el-dialog .el-dialog__body),
+:deep(.preview-dialog .el-scrollbar__wrap),
+:deep(.preview-dialog .el-scrollbar__view),
+:deep(.preview-dialog .preview-container) {
+  background: #0f1115 !important;
+}
+
+/* header/footer 同步暗色，避免边框/底色反白 */
+:deep(.el-dialog.preview-dialog .el-dialog__header),
+:deep(.el-dialog.preview-dialog .el-dialog__footer) {
+  background: #111827 !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+
 </style>
