@@ -284,7 +284,7 @@ onMounted(fetchList)
     gap: 8px;
     flex-wrap: nowrap;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: visible;
   }
   .ops :deep(.el-button) {
     padding: 6px 8px;
@@ -311,6 +311,7 @@ onMounted(fetchList)
 .table-section .thumb img {
   will-change: transform, opacity;
   transform: translateZ(0);
+  backface-visibility: hidden;
 }
 .el-table .cell {
   white-space: nowrap;
@@ -318,7 +319,7 @@ onMounted(fetchList)
   text-overflow: ellipsis;
 }
 .el-table__row {
-  height: 72px;
+  height: auto;
 }
 .el-table__header,
 .el-table__body {
@@ -326,6 +327,23 @@ onMounted(fetchList)
 }
 .table-section .ops {
   white-space: nowrap;
-  overflow: hidden;
+  overflow: visible;
+}
+:deep(.el-table) {
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.06);
+  --el-table-bg-color: transparent;
+}
+:deep(.el-table__row > td) {
+  background-color: transparent !important;
+  transition: none !important;
+}
+:deep(.el-table__row:hover > td) {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  transition: none !important;
+}
+/* 允许右侧固定列内容不被裁剪（Popconfirm/按钮完全可见） */
+:deep(.el-table__fixed-right),
+:deep(.el-table__fixed-right .el-table__body-wrapper) {
+  overflow: visible !important;
 }
 </style>
