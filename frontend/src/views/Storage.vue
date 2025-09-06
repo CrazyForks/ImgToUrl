@@ -252,7 +252,7 @@ onMounted(fetchList)
 
 .table-section {
   background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
+  /* backdrop-filter removed to avoid flicker on hover */
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
   padding: 1rem;
@@ -295,5 +295,31 @@ onMounted(fetchList)
   .main-content {
     padding: 1rem;
   }
+}
+
+/* Stabilize table layout and prevent hover flicker */
+.table-section {
+  will-change: transform;
+  transform: translateZ(0);
+}
+.table-section .thumb,
+.table-section .thumb img {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+.el-table .cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.el-table__row {
+  height: 72px;
+}
+.el-table__header,
+.el-table__body {
+  table-layout: fixed !important;
+}
+.table-section .ops {
+  white-space: nowrap;
 }
 </style>
