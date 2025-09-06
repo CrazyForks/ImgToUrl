@@ -77,6 +77,21 @@
                     confirm-button-text="删除"
                     cancel-button-text="取消"
                     confirm-button-type="danger"
+                    trigger="click"
+                    teleported
+                    placement="top"
+                    width="260"
+                    :persistent="true"
+                    :show-after="0"
+                    :hide-after="0"
+                    :popper-options="{
+                      strategy: 'fixed',
+                      modifiers: [
+                        { name: 'flip', options: { fallbackPlacements: [] } },
+                        { name: 'preventOverflow', options: { tether: false, altAxis: false, padding: 8 } },
+                        { name: 'offset', options: { offset: [0, 8] } }
+                      ]
+                    }"
                     @confirm="remove(row)"
                   >
                     <template #reference>
