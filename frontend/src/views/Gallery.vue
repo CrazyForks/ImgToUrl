@@ -254,6 +254,13 @@
       width="90%" 
       center
       class="preview-dialog"
+      :modal-class="'preview-overlay'"
+      append-to-body
+      destroy-on-close
+      close-on-click-modal
+      close-on-press-escape
+      lock-scroll
+      @closed="onDialogClosed"
     >
       <div class="preview-container">
         <img 
@@ -438,9 +445,17 @@ const handlePageChange = (page: number) => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+const isClosing = ref(false)
 const previewImage = (image: ImageInfo) => {
+  if (isClosing.value) return
   currentPreviewImage.value = image
   previewVisible.value = true
+}
+const onDialogClosed = () => {
+  currentPreviewImage.value = null
+  // 轻微防抖，避免关闭时点击穿透再次触发预览
+  isClosing.value = true
+  setTimeout(() => { isClosing.value = false }, 150)
 }
 
 const toAbsolute = (url: string) => (url?.startsWith('http') ? url : `${window.location.origin}${url}`)
@@ -943,4 +958,33 @@ onMounted(async () => {
     }
   }
 }
+/* 预览弹窗暗色主题与遮罩 */
+:deep(.preview-overlay) {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+:deep(.preview-dialog .el-dialog) {
+  background: #0f1115;
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+:deep(.preview-dialog .el-dialog__header) {
+  background: #0f1115;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:deep(.preview-dialog .el-dialog__title) {
+  color: #e5e7eb;
+}
+
+:deep(.preview-dialog .el-dialog__headerbtn .el-dialog__close) {
+  color: #cbd5e1;
+}
+
+:deep(.preview-dialog .el-dialog__body) {
+  background: #0f1115;
+}
+
 </style>
