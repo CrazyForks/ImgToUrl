@@ -382,4 +382,34 @@ onMounted(fetchList)
 :deep(.el-popper) {
   z-index: 3000 !important;
 }
+
+/* 强力覆盖：任何情况下都不让表格行/列在 hover 或选中时变白 */
+:deep(.el-table__inner-wrapper),
+:deep(.el-table__body),
+:deep(.el-table__body-wrapper),
+:deep(.el-table__fixed),
+:deep(.el-table__fixed-right),
+:deep(.el-table__fixed-right .el-table__fixed-body-wrapper) {
+  background: transparent !important;
+}
+
+:deep(.el-table__body tr > td),
+:deep(.el-table__body tr:hover > td),
+:deep(.el-table__body tr.hover-row > td),
+:deep(.el-table__row.current-row > td) {
+  background-color: transparent !important;
+  transition: background-color 0s !important;
+}
+
+/* 稳定操作按钮：去除过渡，避免 hover 轻微位移 */
+.table-section .ops :deep(.el-button) {
+  transition: none !important;
+  border-width: 1px !important;
+}
+
+/* 避免单元格内内容因hover产生重排 */
+:deep(.el-table__body .el-table__cell) {
+  white-space: nowrap;
+}
+
 </style>
