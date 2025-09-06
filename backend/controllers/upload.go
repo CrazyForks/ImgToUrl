@@ -72,6 +72,7 @@ func (uc *UploadController) UploadImage(c *gin.Context) {
 	}
 
 	// 保存到数据库
+	uploader := c.GetString("username")
 	image := &models.Image{
 		UUID:         uuid.New().String(),
 		OriginalName: header.Filename,
@@ -84,6 +85,7 @@ func (uc *UploadController) UploadImage(c *gin.Context) {
 		PublicURL:    publicURL,
 		UploadIP:     c.ClientIP(),
 		UserAgent:    c.GetHeader("User-Agent"),
+		Uploader:     uploader,
 	}
 
 	if err := database.DB.Create(image).Error; err != nil {
@@ -263,6 +265,7 @@ func (uc *UploadController) BatchUpload(c *gin.Context) {
 			PublicURL:    publicURL,
 			UploadIP:     c.ClientIP(),
 			UserAgent:    c.GetHeader("User-Agent"),
+			Uploader:     c.GetString("username"),
 		}
 
 		if err := database.DB.Create(image).Error; err != nil {
@@ -334,7 +337,13 @@ func (uc *UploadController) ListImages(c *gin.Context) {
 	}
 
 	var total int64
-	if err := database.DB.Model(&models.Image{}).Count(&total).Error; err != nil {
+	username := c.GetString("username")
+	dbq := database.DB.Model(&models.Image{})
+	// 非 root 仅查看自己的
+	if username != config.AppConfig.DefaultAdmin {
+		dbq = dbq.Where("uploader = ?", username)
+	}
+	if err := dbq.Count(&total).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to count images",
 			"code":  "DATABASE_ERROR",
@@ -343,7 +352,11 @@ func (uc *UploadController) ListImages(c *gin.Context) {
 	}
 
 	var images []models.Image
-	if err := database.DB.
+	query := database.DB
+	if username != config.AppConfig.DefaultAdmin {
+		query = query.Where("uploader = ?", username)
+	}
+	if err := query.
 		Order("created_at DESC").
 		Offset((page - 1) * size).
 		Limit(size).
@@ -378,7 +391,13 @@ func (uc *UploadController) DeleteImage(c *gin.Context) {
 	}
 
 	var image models.Image
-	if err := database.DB.Where("uuid = ?", u).First(&image).Error; err != nil {
+	username := c.GetString("username")
+	q := database.DB
+	// 非 root 只能删除自己的
+	if username != config.AppConfig.DefaultAdmin {
+		q = q.Where("uploader = ?", username)
+	}
+	if err := q.Where("uuid = ?", u).First(&image).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Image not found",
 			"code":  "NOT_FOUND",

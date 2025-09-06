@@ -53,6 +53,7 @@ func SetupRoutes() *gin.Engine {
 		auth := api.Group("/auth")
 		{
 			auth.POST("/login", controllers.Auth.Login)
+			auth.POST("/guest-login", controllers.Auth.GuestLogin)
 		}
 
 		// 受保护的路由
@@ -82,6 +83,14 @@ func SetupRoutes() *gin.Engine {
 
 			// 批量上传路由
 			protected.POST("/batch-upload", controllers.Upload.BatchUpload)
+
+			// 游客码管理（仅 root）
+			guest := protected.Group("/guest-codes")
+			{
+				guest.POST("/", controllers.GuestCode.Create)
+				guest.GET("/", controllers.GuestCode.List)
+				guest.DELETE("/:id", controllers.GuestCode.Delete)
+			}
 
 			// 系统状态
 			system := protected.Group("/system")

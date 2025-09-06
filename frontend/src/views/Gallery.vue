@@ -313,7 +313,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -452,10 +452,13 @@ const previewImage = (image: ImageInfo) => {
   previewVisible.value = true
 }
 const onDialogClosed = () => {
-  currentPreviewImage.value = null
-  // 轻微防抖，避免关闭时点击穿透再次触发预览
-  isClosing.value = true
-  setTimeout(() => { isClosing.value = false }, 150)
+  // 使用 nextTick 确保 DOM 更新完成后再清理状态
+  nextTick(() => {
+    currentPreviewImage.value = null
+    // 减少防抖时间，避免闪烁
+    isClosing.value = true
+    setTimeout(() => { isClosing.value = false }, 50)
+  })
 }
 
 const toAbsolute = (url: string) => (url?.startsWith('http') ? url : `${window.location.origin}${url}`)
@@ -889,7 +892,7 @@ onMounted(async () => {
         }
 
         .value {
-          color: rgba(0, 0, 0, 0.7);
+          color: rgba(255, 255, 255, 0.8);
         }
       }
     }
@@ -964,33 +967,50 @@ onMounted(async () => {
   pointer-events: auto;
 }
 
-/* 预览弹窗暗色主题与遮罩 */
+/* 预览弹窗暗色主题与遮罩 - 与主题色协调 */
 :deep(.preview-overlay) {
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(15, 17, 21, 0.95);
+  backdrop-filter: blur(8px);
 }
 
 :deep(.preview-dialog .el-dialog) {
-  background: #0f1115;
-  color: #e5e7eb;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  background: linear-gradient(135deg, #1a1d29 0%, #2d1b69 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  border-radius: 16px;
 }
 
 :deep(.preview-dialog .el-dialog__header) {
-  background: #0f1115;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px 16px 0 0;
 }
 
 :deep(.preview-dialog .el-dialog__title) {
-  color: #e5e7eb;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 :deep(.preview-dialog .el-dialog__headerbtn .el-dialog__close) {
-  color: #cbd5e1;
+  color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+:deep(.preview-dialog .el-dialog__headerbtn .el-dialog__close:hover) {
+  color: #409eff;
+  transform: scale(1.1);
 }
 
 :deep(.preview-dialog .el-dialog__body) {
-  background: #0f1115;
+  background: transparent;
+  padding: 2rem;
+}
+
+:deep(.preview-dialog .el-dialog__footer) {
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0 0 16px 16px;
 }
 
 </style>

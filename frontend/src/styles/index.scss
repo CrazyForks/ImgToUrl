@@ -1200,3 +1200,46 @@ img {
     height: 300px;
   }
 }
+
+/* ========== 全局按钮交互规范 ==========
+   要求：所有按钮 hover 不产生位移；点击时“放大→复原”，带加速度/减速度
+*/
+
+/* 统一禁用 hover/active 位移（不加 !important，保证 CSS 动画优先级更高） */
+button:hover,
+.el-button:hover,
+[role="button"]:hover,
+.el-pagination .btn-prev:hover,
+.el-pagination .btn-next:hover,
+.el-pagination .el-pager li:hover,
+button:active,
+.el-button:active,
+[role="button"]:active,
+.el-pagination .btn-prev:active,
+.el-pagination .btn-next:active,
+.el-pagination .el-pager li:active {
+  transform: none;
+}
+
+/* 优化渲染 */
+button,
+.el-button,
+[role="button"],
+.el-pagination .btn-prev,
+.el-pagination .btn-next,
+.el-pagination .el-pager li {
+  will-change: transform;
+  transform-origin: center center;
+}
+
+/* 点击“放大→复原”动画（带加速度/减速度） */
+@keyframes btn-pop {
+  0% { transform: scale(1); }
+  58% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* 触发类：由 JS 在点击时短暂添加 */
+.btn-click-pop {
+  animation: btn-pop 220ms cubic-bezier(0.2, 0.6, 0.2, 1) both;
+}

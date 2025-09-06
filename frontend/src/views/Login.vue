@@ -3,15 +3,29 @@
     <div class="login-card">
       <h1 class="title">登录</h1>
       <p class="subtitle">默认账号 root / 123456（请登录后尽快修改密码）</p>
-      <el-form :model="form" @keyup.enter="onSubmit">
-        <el-form-item>
-          <el-input v-model="form.username" placeholder="用户名" clearable />
-        </el-form-item>
-        <el-form-item>
-          <el-input v-model="form.password" type="password" placeholder="密码" show-password />
-        </el-form-item>
-        <el-button type="primary" class="full" :loading="loading" @click="onSubmit">登录</el-button>
-      </el-form>
+
+      <el-tabs v-model="tab">
+        <el-tab-pane label="账号登录" name="account">
+          <el-form :model="form" @keyup.enter="onSubmit">
+            <el-form-item>
+              <el-input v-model="form.username" placeholder="用户名" clearable />
+            </el-form-item>
+            <el-form-item>
+              <el-input v-model="form.password" type="password" placeholder="密码" show-password />
+            </el-form-item>
+            <el-button type="primary" class="full" :loading="loading" @click="onSubmit">登录</el-button>
+          </el-form>
+        </el-tab-pane>
+
+        <el-tab-pane label="游客模式" name="guest">
+          <el-form :model="guest" @keyup.enter="onGuestLogin">
+            <el-form-item>
+              <el-input v-model="guest.code" placeholder="请输入游客码" clearable />
+            </el-form-item>
+            <el-button type="primary" class="full" :loading="gLoading" @click="onGuestLogin">游客登录</el-button>
+          </el-form>
+        </el-tab-pane>
+      </el-tabs>
     </div>
   </div>
 </template>
@@ -20,11 +34,14 @@
 import { reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { login } from '@/api/auth'
+import { login, guestLogin } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
 
+const tab = ref<'account' | 'guest'>('account')
 const form = reactive({ username: 'root', password: '123456' })
+const guest = reactive({ code: '' })
 const loading = ref(false)
+const gLoading = ref(false)
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
@@ -49,6 +66,28 @@ const onSubmit = async () => {
     ElMessage.error(e?.message || '登录失败')
   } finally {
     loading.value = false
+  }
+}
+const onGuestLogin = async () => {
+  if (!guest.code) {
+    ElMessage.error('请输入游客码')
+    return
+  }
+  gLoading.value = true
+  try {
+    const res = await guestLogin(guest.code)
+    if (res.success && res.data) {
+      auth.setAuth(res.data.token, res.data.username)
+      ElMessage.success('游客登录成功')
+      const redirect = (route.query.redirect as string) || '/'
+      router.replace(redirect)
+    } else {
+      ElMessage.error(res.error || '游客登录失败')
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.message || '游客登录失败')
+  } finally {
+    gLoading.value = false
   }
 }
 </script>

@@ -8,21 +8,22 @@ import (
 
 // Image 图片模型
 type Image struct {
-	ID          uint           `json:"id" gorm:"primaryKey"`
-	UUID        string         `json:"uuid" gorm:"type:varchar(36);uniqueIndex;not null"`
-	OriginalName string        `json:"original_name" gorm:"not null"`
-	FileName     string        `json:"file_name" gorm:"not null"`
-	FileSize     int64         `json:"file_size" gorm:"not null"`
-	MimeType     string        `json:"mime_type" gorm:"not null"`
-	Width        int           `json:"width"`
-	Height       int           `json:"height"`
-	R2Key        string        `json:"r2_key" gorm:"not null"`
-	PublicURL    string        `json:"public_url" gorm:"not null"`
-	ThumbnailURL string        `json:"thumbnail_url"`
-	UploadIP     string        `json:"upload_ip"`
-	UserAgent    string        `json:"user_agent"`
-	CreatedAt    time.Time     `json:"created_at"`
-	UpdatedAt    time.Time     `json:"updated_at"`
+	ID           uint           `json:"id" gorm:"primaryKey"`
+	UUID         string         `json:"uuid" gorm:"type:varchar(36);uniqueIndex;not null"`
+	OriginalName string         `json:"original_name" gorm:"not null"`
+	FileName     string         `json:"file_name" gorm:"not null"`
+	FileSize     int64          `json:"file_size" gorm:"not null"`
+	MimeType     string         `json:"mime_type" gorm:"not null"`
+	Width        int            `json:"width"`
+	Height       int            `json:"height"`
+	R2Key        string         `json:"r2_key" gorm:"not null"`
+	PublicURL    string         `json:"public_url" gorm:"not null"`
+	ThumbnailURL string         `json:"thumbnail_url"`
+	UploadIP     string         `json:"upload_ip"`
+	UserAgent    string         `json:"user_agent"`
+	Uploader     string         `json:"uploader" gorm:"type:varchar(128);index"` // 'root' 或 'guest:<id>'
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
 }
 

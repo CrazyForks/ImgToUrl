@@ -35,6 +35,9 @@ func main() {
 	r := routes.SetupRoutes()
 	log.Println("Routes configured successfully")
 
+	// 启动游客码过期清理任务
+	services.Guest.StartCleanupJob()
+
 	// 启动服务器
 	port := config.AppConfig.Port
 	log.Printf("Server starting on port %s", port)

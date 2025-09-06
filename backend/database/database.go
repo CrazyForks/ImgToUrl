@@ -66,6 +66,7 @@ func AutoMigrate() error {
 		&models.Image{},
 		&models.ImageStats{},
 		&models.User{},
+		&models.GuestCode{},
 	)
 }
 
