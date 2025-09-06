@@ -40,7 +40,7 @@ RUN mkdir -p /etc/nginx/conf.d
 # 创建默认站点配置
 RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
 server {
-    listen 80;
+    listen 3000;
     server_name localhost;
     root /usr/share/nginx/html;
     index index.html;
@@ -90,11 +90,11 @@ server {
 EOF
 
 # 暴露端口
-EXPOSE 80
+EXPOSE 3000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost/ || exit 1
+    CMD curl -f http://localhost:3000/ || exit 1
 
 # 启动 Nginx
 CMD ["nginx", "-g", "daemon off;"]

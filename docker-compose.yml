@@ -51,7 +51,7 @@ services:
     container_name: image-host-backend
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
       - SERVER_PORT=8080
       - SERVER_MODE=release
@@ -59,6 +59,7 @@ services:
       - DB_PORT=3306
       - DB_USER=${DB_USER:-imagehost}
       - DB_PASSWORD=${DB_PASSWORD:-root123}
+
       - DB_NAME=${DB_NAME:-image_host}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -81,7 +82,7 @@ services:
     volumes:
       - ./backend/logs:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       timeout: 10s
       retries: 5
       start_period: 30s
@@ -96,8 +97,7 @@ services:
     container_name: image-host-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "3000:3000"
     depends_on:
       backend:
         condition: service_healthy
@@ -107,7 +107,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
       timeout: 10s
       retries: 3
 
