@@ -45,14 +45,17 @@ func InitDatabase() {
 	}
 
 	// 设置连接池参数
-	sqlDB.SetMaxIdleConns(10)                  // 最大空闲连接数
-	sqlDB.SetMaxOpenConns(100)                 // 最大打开连接数
-	sqlDB.SetConnMaxLifetime(time.Hour)        // 连接最大生存时间
+	sqlDB.SetMaxIdleConns(10)           // 最大空闲连接数
+	sqlDB.SetMaxOpenConns(100)          // 最大打开连接数
+	sqlDB.SetConnMaxLifetime(time.Hour) // 连接最大生存时间
 
 	// 自动迁移数据库表
 	if err := AutoMigrate(); err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
+
+	// 初始化默认管理员
+	ensureDefaultAdmin(DB)
 
 	log.Println("Database connected and migrated successfully")
 }
@@ -62,6 +65,7 @@ func AutoMigrate() error {
 	return DB.AutoMigrate(
 		&models.Image{},
 		&models.ImageStats{},
+		&models.User{},
 	)
 }
 

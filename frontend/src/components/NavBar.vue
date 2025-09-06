@@ -26,6 +26,18 @@
           <el-icon><Folder /></el-icon>
           存储内容
         </router-link>
+
+        <template v-if="isAuthed">
+          <router-link to="/settings" class="nav-link" active-class="active">
+            设置
+          </router-link>
+          <a href="javascript:void(0)" class="nav-link" @click.prevent="logout">退出</a>
+        </template>
+        <template v-else>
+          <router-link to="/login" class="nav-link" active-class="active">
+            登录
+          </router-link>
+        </template>
       </div>
     </div>
   </nav>
@@ -33,6 +45,15 @@
 
 <script setup lang="ts">
 import { Picture, House, Upload, DataAnalysis, Folder } from '@element-plus/icons-vue'
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+const isAuthed = computed(() => !!auth.token)
+const logout = () => {
+  auth.clearAuth()
+  location.href = '/login'
+}
 </script>
 
 <style lang="scss" scoped>

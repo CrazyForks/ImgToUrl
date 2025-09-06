@@ -6,6 +6,15 @@ const api = axios.create({
   timeout: 30000,
 })
 
+api.interceptors.request.use((config) => {
+  const t = localStorage.getItem('token')
+  if (t) {
+    config.headers = config.headers || {}
+    ;(config.headers as any).Authorization = `Bearer ${t}`
+  }
+  return config
+})
+
 export interface PagedImages {
   items: ImageInfo[]
   total: number

@@ -36,6 +36,11 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
+    const t = localStorage.getItem('token')
+    if (t) {
+      config.headers = config.headers || {}
+      ;(config.headers as any).Authorization = `Bearer ${t}`
+    }
     return config
   },
   (error) => {

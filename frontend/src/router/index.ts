@@ -3,6 +3,12 @@ import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: { title: '登录', public: true }
+  },
+  {
     path: '/',
     name: 'Home',
     component: () => import('@/views/Home.vue'),
@@ -43,6 +49,12 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('@/views/Settings.vue'),
+    meta: { title: '设置' }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),
@@ -66,9 +78,14 @@ const router = createRouter({
 
 // 路由守卫
 router.beforeEach((to, from, next) => {
-  // 设置页面标题
   if (to.meta?.title) {
     document.title = `${to.meta.title} - 图床转换系统`
+  }
+  const isPublic = (to.meta as any)?.public === true
+  const token = localStorage.getItem('token')
+  if (!isPublic && !token && to.path !== '/login') {
+    next({ path: '/login', query: { redirect: to.fullPath } })
+    return
   }
   next()
 })

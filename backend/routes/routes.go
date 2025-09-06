@@ -49,30 +49,45 @@ func SetupRoutes() *gin.Engine {
 	// API 路由组
 	api := r.Group("/api/v1")
 	{
-		// 图片上传相关路由
-		images := api.Group("/images")
+		// 认证相关（公开）
+		auth := api.Group("/auth")
 		{
-			// 列表与删除
-			images.GET("/", controllers.Upload.ListImages)
-			images.DELETE("/:uuid", controllers.Upload.DeleteImage)
-
-			// 上传图片
-			images.POST("/upload", controllers.Upload.UploadImage)
-
-			// 获取图片信息
-			images.GET("/:uuid", controllers.Upload.GetImage)
-
-			// 获取统计信息
-			images.GET("/stats/summary", controllers.Upload.GetStats)
+			auth.POST("/login", controllers.Auth.Login)
 		}
 
-		// 批量上传路由
-		api.POST("/batch-upload", controllers.Upload.BatchUpload)
-
-		// 系统状态
-		system := api.Group("/system")
+		// 受保护的路由
+		protected := api.Group("")
+		protected.Use(middleware.Auth())
 		{
-			system.GET("/status", controllers.System.Status)
+			// 用户信息与改密
+			protected.GET("/auth/me", controllers.Auth.Me)
+			protected.POST("/auth/change-password", controllers.Auth.ChangePassword)
+
+			// 图片上传相关路由
+			images := protected.Group("/images")
+			{
+				// 列表与删除
+				images.GET("/", controllers.Upload.ListImages)
+				images.DELETE("/:uuid", controllers.Upload.DeleteImage)
+
+				// 上传图片
+				images.POST("/upload", controllers.Upload.UploadImage)
+
+				// 获取图片信息
+				images.GET("/:uuid", controllers.Upload.GetImage)
+
+				// 获取统计信息
+				images.GET("/stats/summary", controllers.Upload.GetStats)
+			}
+
+			// 批量上传路由
+			protected.POST("/batch-upload", controllers.Upload.BatchUpload)
+
+			// 系统状态
+			system := protected.Group("/system")
+			{
+				system.GET("/status", controllers.System.Status)
+			}
 		}
 	}
 

@@ -13,6 +13,12 @@ type Config struct {
 	// 服务器配置
 	Port string
 
+	// 鉴权配置
+	JWTSecret       string
+	JWTExpireHours  int
+	DefaultAdmin    string
+	DefaultPassword string
+
 	// 数据库配置
 	DBHost     string
 	DBPort     string
@@ -51,6 +57,7 @@ func LoadConfig() {
 
 	redisDB, _ := strconv.Atoi(getEnv("REDIS_DB", "0"))
 	maxFileSize, _ := strconv.ParseInt(getEnv("MAX_FILE_SIZE", "10485760"), 10, 64) // 10MB
+	jwtExpireHours, _ := strconv.Atoi(getEnv("JWT_EXPIRE_HOURS", "72"))
 
 	// 端口与允许类型（从环境变量解析）
 	port := getEnv("SERVER_PORT", getEnv("PORT", "8080"))
@@ -66,6 +73,12 @@ func LoadConfig() {
 	AppConfig = &Config{
 		// 服务器配置
 		Port: port,
+
+		// 鉴权配置
+		JWTSecret:       getEnv("JWT_SECRET", "change_me_secret"),
+		JWTExpireHours:  jwtExpireHours,
+		DefaultAdmin:    getEnv("DEFAULT_ADMIN", "root"),
+		DefaultPassword: getEnv("DEFAULT_PASSWORD", "123456"),
 
 		// 数据库配置
 		DBHost:     getEnv("DB_HOST", "localhost"),
