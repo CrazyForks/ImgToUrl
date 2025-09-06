@@ -293,15 +293,15 @@
           </div>
           
           <div class="preview-actions">
-            <el-button @click="copyUrl(currentPreviewImage?.public_url || '')">
+            <el-button type="primary" @click="copyUrl(currentPreviewImage?.public_url || '')">
               <el-icon><DocumentCopy /></el-icon>
               复制链接
             </el-button>
-            <el-button @click="copyMarkdown(currentPreviewImage)">
+            <el-button type="primary" @click="copyMarkdown(currentPreviewImage)">
               <el-icon><Document /></el-icon>
               复制 Markdown
             </el-button>
-            <el-button @click="downloadImage(currentPreviewImage)">
+            <el-button type="primary" @click="downloadImage(currentPreviewImage)">
               <el-icon><Download /></el-icon>
               下载图片
             </el-button>
@@ -1058,6 +1058,52 @@ onMounted(async () => {
   display: block;
   margin: 0 auto;
   background: transparent !important;
+}
+
+/* 统一在预览对话框内切换到深色主题，并覆盖默认按钮为深色 */
+:deep(.el-dialog.preview-dialog) {
+  /* 深色背景与文本 */
+  background: #0f1115 !important;
+  color: #e5e7eb !important;
+
+  /* Element Plus 主题变量在对话框作用域内覆盖 */
+  --el-bg-color: #0f1115;
+  --el-bg-color-overlay: #0f1115;
+  --el-text-color-primary: #ffffff;
+  --el-text-color-regular: #e5e7eb;
+  --el-border-color: rgba(255,255,255,0.12);
+  --el-border-color-lighter: rgba(255,255,255,0.12);
+}
+
+/* 去除 body/滚动容器白底 */
+:deep(.el-dialog.preview-dialog .el-dialog__body),
+:deep(.el-dialog.preview-dialog .el-scrollbar__wrap),
+:deep(.el-dialog.preview-dialog .el-scrollbar__view),
+:deep(.el-dialog.preview-dialog .preview-container) {
+  background: transparent !important;
+}
+
+/* header/footer 亦为深色 */
+:deep(.el-dialog.preview-dialog .el-dialog__header),
+:deep(.el-dialog.preview-dialog .el-dialog__footer) {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+
+/* 兜底：将默认型按钮在该弹窗内统一为深色风格，避免出现白底按钮 */
+:deep(.el-dialog.preview-dialog .el-button:not(.el-button--primary):not(.is-link):not(.is-text)) {
+  background-color: #1f2a4a !important;
+  border-color: #334155 !important;
+  color: #e5e7eb !important;
+}
+:deep(.el-dialog.preview-dialog .el-button:not(.el-button--primary):not(.is-link):not(.is-text):hover) {
+  background-color: #2b3a63 !important;
+  border-color: #475569 !important;
+}
+
+/* primary 按钮在暗色下的悬停反馈 */
+:deep(.el-dialog.preview-dialog .el-button.el-button--primary:hover) {
+  filter: brightness(1.05);
 }
 
 </style>
