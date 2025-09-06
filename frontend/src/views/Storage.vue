@@ -22,7 +22,7 @@
         </section>
 
         <section class="table-section">
-          <el-table :data="pagedItems" style="width: 100%" v-loading="loading">
+          <el-table :data="pagedItems" style="width: 100%" v-loading="loading" :row-class-name="'no-hover-row'">
             <el-table-column label="预览" width="90">
               <template #default="{ row }">
                 <div class="thumb">
@@ -410,6 +410,18 @@ onMounted(fetchList)
 /* 避免单元格内内容因hover产生重排 */
 :deep(.el-table__body .el-table__cell) {
   white-space: nowrap;
+}
+
+/* 为每行加的类名，彻底禁用任何悬停/选中背景 */
+:deep(.no-hover-row > td) {
+  background-color: transparent !important;
+  transition: none !important;
+}
+
+/* 防止内容/弹窗被裁剪 */
+:deep(.el-table__body-wrapper),
+:deep(.el-table__inner-wrapper) {
+  overflow: visible !important;
 }
 
 </style>
