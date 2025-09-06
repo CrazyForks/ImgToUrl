@@ -330,28 +330,34 @@ onMounted(fetchList)
   overflow: visible;
 }
 :deep(.el-table) {
-  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.02);
+  --el-table-row-hover-bg-color: transparent;
+  --el-table-current-row-bg-color: rgba(255, 255, 255, 0.03);
   --el-table-bg-color: transparent;
+  --el-table-header-bg-color: transparent;
 }
 :deep(.el-table__row > td) {
   background-color: transparent !important;
   transition: none !important;
-  padding: 12px 0 !important;
 }
 :deep(.el-table__row:hover > td) {
-  background-color: rgba(255, 255, 255, 0.02) !important;
+  background-color: transparent !important;
   transition: none !important;
 }
 /* 允许右侧固定列内容不被裁剪（Popconfirm/按钮完全可见） */
 :deep(.el-table__fixed-right),
 :deep(.el-table__fixed-right .el-table__body-wrapper) {
   overflow: visible !important;
-}
-:deep(.el-table__row) {
-  height: 80px !important;
+  z-index: 2;
 }
 :deep(.el-table td.el-table__cell) {
-  padding: 16px 0 !important;
+  padding: 12px 8px !important;
   vertical-align: middle;
+}
+.table-section .ops {
+  position: relative;
+  z-index: 3;
+}
+:deep(.el-popper) {
+  z-index: 3000 !important;
 }
 </style>
