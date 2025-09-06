@@ -1106,4 +1106,32 @@ onMounted(async () => {
   filter: brightness(1.05);
 }
 
+/* 彻底兜底：同时覆盖三种层级，消除预览内部白底 */
+:deep(.el-dialog.preview-dialog),
+:deep(.preview-dialog .el-dialog),
+:deep(.el-overlay-dialog.preview-dialog .el-dialog) {
+  background: #0f1115 !important;
+  color: #e5e7eb !important;
+  --el-bg-color: #0f1115;
+  --el-bg-color-overlay: #0f1115;
+  --el-text-color-primary: #ffffff;
+  --el-text-color-regular: #e5e7eb;
+  --el-border-color: rgba(255,255,255,0.12);
+  --el-border-color-lighter: rgba(255,255,255,0.12);
+}
+
+/* body/滚动容器必须也改为深色，避免内部仍是白色 */
+:deep(.el-dialog.preview-dialog .el-dialog__body),
+:deep(.preview-dialog .el-dialog .el-dialog__body),
+:deep(.el-overlay-dialog.preview-dialog .el-dialog .el-dialog__body),
+:deep(.preview-dialog .el-scrollbar__wrap),
+:deep(.preview-dialog .el-scrollbar__view) {
+  background: #0f1115 !important;
+}
+
+/* 预览容器本身也给深色，避免透明时透出白底 */
+:deep(.preview-dialog .preview-container) {
+  background: #0f1115 !important;
+}
+
 </style>
