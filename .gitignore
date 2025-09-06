@@ -1,36 +1,32 @@
-# Node frontend
+# Node / Frontend
 frontend/node_modules/
 frontend/dist/
-
-# Env and secrets
-.env
-.env.*
-*.pem
-*.key
-
-# Logs
-logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Local uploads and temp
-backend/uploads/
-uploads/
-temp/
-temp/**
+# Env & Secrets
+.env
+*.env
+backend/.env
+frontend/.env
 
-# Go build artifacts
-backend/main
-*.exe
-*.out
-
-# Docker overrides
-docker-compose.override.yml
-
-# Nginx SSL
-nginx/ssl/
-
-# OS/IDE
+# Build cache / editor
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Uploads / Generated assets
+backend/uploads/
+backend/static/
+public/uploads/
+
+# Go build artifacts
+backend/bin/
+backend/tmp/
+*.out
+
+# Nginx certs (if any)
+nginx/ssl/

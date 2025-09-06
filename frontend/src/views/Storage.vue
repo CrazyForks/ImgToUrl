@@ -157,6 +157,32 @@ const formatTime = (date: string) => dayjs(date).fromNow()
 
 const toAbsolute = (url: string) => (url?.startsWith('http') ? url : `${window.location.origin}${url}`)
 
+const copyToClipboard = async (text: string): Promise<boolean> => {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch (e) {
+    // ignore and fallback
+  }
+  try {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.top = '-9999px'
+    textarea.style.left = '-9999px'
+    textarea.setAttribute('readonly', '')
+    document.body.appendChild(textarea)
+    textarea.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    return ok
+  } catch {
+    return false
+  }
+}
+
 const fetchList = async () => {
   loading.value = true
   try {
@@ -184,11 +210,11 @@ const handlePageChange = async (p: number) => {
 
 const copyLink = async (row: ImageInfo) => {
   const abs = toAbsolute(row.public_url)
-  try {
-    await navigator.clipboard.writeText(abs)
+  const ok = await copyToClipboard(abs)
+  if (ok) {
     ElMessage.success('已复制链接')
-  } catch {
-    ElMessage.error('复制失败')
+  } else {
+    ElMessage.error('复制失败，请手动复制：' + abs)
   }
 }
 

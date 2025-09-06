@@ -2,6 +2,20 @@ import axios from 'axios'
 import type { AxiosProgressEvent } from 'axios'
 import type { ImageInfo, UploadResult, BatchUploadResult, StatsInfo } from '@/stores/upload'
 
+export interface SystemStatus {
+  uptime_seconds: number
+  disk_total: number
+  disk_free: number
+  disk_used: number
+  total_images: number
+  total_size: number
+  today_images: number
+  today_size: number
+  average_file_size: number
+  max_file_size: number
+  min_file_size: number
+}
+
 // 创建 axios 实例
 const api = axios.create({
   baseURL: '/api/v1',
@@ -89,10 +103,20 @@ export const getImageInfo = async (uuid: string): Promise<{ success: boolean; da
   }
 }
 
-// 获取统计信息
+ // 获取统计信息
 export const getStats = async (): Promise<{ success: boolean; data: StatsInfo }> => {
   try {
     const { data } = await api.get<{ success: boolean; data: StatsInfo }>('/images/stats/summary')
+    return data
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+// 获取系统状态（运行时间、磁盘容量等）
+export const getSystemStatus = async (): Promise<{ success: boolean; data: SystemStatus }> => {
+  try {
+    const { data } = await api.get<{ success: boolean; data: SystemStatus }>('/system/status')
     return data
   } catch (error: any) {
     throw new Error(error.message)

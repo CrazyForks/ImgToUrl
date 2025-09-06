@@ -68,6 +68,12 @@ func SetupRoutes() *gin.Engine {
 
 		// 批量上传路由
 		api.POST("/batch-upload", controllers.Upload.BatchUpload)
+
+		// 系统状态
+		system := api.Group("/system")
+		{
+			system.GET("/status", controllers.System.Status)
+		}
 	}
 
 	// 静态文件服务

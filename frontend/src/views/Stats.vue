@@ -294,7 +294,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   Picture,
@@ -316,6 +316,7 @@ import {
 } from '@element-plus/icons-vue'
 import NavBar from '@/components/NavBar.vue'
 import { useUploadStore } from '@/stores/upload'
+import { getSystemStatus, type SystemStatus } from '@/api/upload'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -324,18 +325,37 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
 
+const formatDuration = (seconds: number): string => {
+  if (!seconds || seconds < 0) return '--'
+  let s = Math.floor(seconds)
+  const d = Math.floor(s / 86400)
+  s %= 86400
+  const h = Math.floor(s / 3600)
+  s %= 3600
+  const m = Math.floor(s / 60)
+  s = s % 60
+  const parts: string[] = []
+  if (d) parts.push(`${d}天`)
+  if (h) parts.push(`${h}时`)
+  if (m) parts.push(`${m}分`)
+  if (s || parts.length === 0) parts.push(`${s}秒`)
+  return parts.join(' ')
+}
+
 const uploadStore = useUploadStore()
 
 // 状态
 const loading = ref(false)
-const systemStartTime = ref(new Date())
+const systemStatus = ref<SystemStatus | null>(null)
+let refreshTimer: number | undefined
 
 // 计算属性
 const stats = computed(() => uploadStore.stats)
 const uploadedImages = computed(() => uploadStore.uploadedImages)
 
-// 今日上传统计
+ // 今日上传统计（优先后端）
 const todayUploads = computed(() => {
+  if (systemStatus.value) return systemStatus.value.today_images || 0
   const today = dayjs().format('YYYY-MM-DD')
   return uploadedImages.value.filter(image => 
     dayjs(image.created_at).format('YYYY-MM-DD') === today
@@ -343,41 +363,48 @@ const todayUploads = computed(() => {
 })
 
 const todaySize = computed(() => {
+  if (systemStatus.value) return systemStatus.value.today_size || 0
   const today = dayjs().format('YYYY-MM-DD')
   return uploadedImages.value
     .filter(image => dayjs(image.created_at).format('YYYY-MM-DD') === today)
     .reduce((sum, image) => sum + image.file_size, 0)
 })
 
-// 文件大小统计
+ // 文件大小统计（优先后端）
 const averageFileSize = computed(() => {
+  if (systemStatus.value) return systemStatus.value.average_file_size || 0
   const images = uploadedImages.value
   if (images.length === 0) return 0
   return Math.round(images.reduce((sum, image) => sum + image.file_size, 0) / images.length)
 })
 
 const maxFileSize = computed(() => {
+  if (systemStatus.value) return systemStatus.value.max_file_size || 0
   const images = uploadedImages.value
   if (images.length === 0) return 0
   return Math.max(...images.map(image => image.file_size))
 })
 
 const minFileSize = computed(() => {
+  if (systemStatus.value) return systemStatus.value.min_file_size || 0
   const images = uploadedImages.value
   if (images.length === 0) return 0
   return Math.min(...images.map(image => image.file_size))
 })
 
-// 存储使用率 (假设总容量为 10GB)
+ // 存储使用率：使用真实磁盘总容量
 const storageUsagePercentage = computed(() => {
-  const totalCapacity = 10 * 1024 * 1024 * 1024 // 10GB
+  const totalCapacity = systemStatus.value?.disk_total || 0
   const usedSpace = stats.value.total_size || 0
+  if (!totalCapacity) return 0
   return Math.min(Math.round((usedSpace / totalCapacity) * 100), 100)
 })
 
-// 系统运行时间
+ // 系统运行时间（来自后端秒数）
 const systemUptime = computed(() => {
-  return dayjs(systemStartTime.value).fromNow(true)
+  const s = systemStatus.value?.uptime_seconds
+  if (s === undefined) return '--'
+  return formatDuration(s)
 })
 
 // 文件类型统计
@@ -435,7 +462,7 @@ const formatFileSize = (bytes: number): string => {
 const refreshStats = async () => {
   loading.value = true
   try {
-    await uploadStore.fetchStats()
+    await Promise.all([uploadStore.fetchStats(), fetchSystemStatus()])
     ElMessage.success('数据已刷新')
   } catch (error) {
     ElMessage.error('刷新失败')
@@ -463,15 +490,33 @@ const getStorageColor = (percentage: number): string => {
   return '#67C23A'
 }
 
-// 组件挂载时加载数据
+// 组件挂载时加载数据 + 定时刷新
+const fetchSystemStatus = async () => {
+  const res = await getSystemStatus()
+  if (res.success) {
+    systemStatus.value = res.data
+  }
+}
+
 onMounted(async () => {
   loading.value = true
   try {
     await uploadStore.fetchStats()
+    await fetchSystemStatus()
+    // 每30秒自动刷新
+    refreshTimer = window.setInterval(async () => {
+      await Promise.all([uploadStore.fetchStats(), fetchSystemStatus()])
+    }, 30000)
   } catch (error) {
     console.error('加载统计数据失败:', error)
   } finally {
     loading.value = false
+  }
+})
+onUnmounted(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = undefined
   }
 })
 </script>

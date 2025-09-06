@@ -28,6 +28,7 @@ func main() {
 
 	// 初始化控制器
 	controllers.InitUploadController()
+	controllers.InitSystemController()
 	log.Println("Controllers initialized successfully")
 
 	// 设置路由

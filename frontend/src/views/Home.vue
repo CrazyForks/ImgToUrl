@@ -11,7 +11,7 @@
             高性能图床转换系统
           </h1>
           <p class="hero-subtitle">
-            基于 Cloudflare R2 的快速、安全、可靠的图片存储服务
+            基于自建 VPS 的快速、安全、可靠的图片存储服务
           </p>
           <div class="hero-features">
             <div class="feature-item">
@@ -109,7 +109,7 @@
     <!-- 页脚 -->
     <footer class="footer">
       <div class="footer-content">
-        <p>&copy; 2024 图床转换系统. 基于 Vue3 + Go + MySQL + Cloudflare R2</p>
+        <p>&copy; 2024 图床转换系统. 基于 Vue3 + Go + MySQL + 自建 VPS</p>
       </div>
     </footer>
   </div>
