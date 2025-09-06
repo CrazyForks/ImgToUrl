@@ -39,7 +39,7 @@ export const uploadImage = async (
   onProgress?: (progress: number) => void
 ): Promise<UploadResult> => {
   try {
-    const { data } = await api.post<UploadResult>('/upload', formData, {
+    const { data } = await api.post<UploadResult>('/images/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
