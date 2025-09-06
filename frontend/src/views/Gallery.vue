@@ -255,6 +255,15 @@
       center
       class="preview-dialog"
       :modal-class="'preview-overlay'"
+      :style="{
+        background: '#0f1115',
+        color: '#e5e7eb',
+        '--el-bg-color': '#0f1115',
+        '--el-bg-color-overlay': '#0f1115',
+        '--el-fill-color-blank': '#0f1115',
+        '--el-dialog-bg-color': '#0f1115',
+        '--el-color-white': '#0f1115'
+      }"
       append-to-body
       destroy-on-close
       close-on-click-modal
