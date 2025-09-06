@@ -29,6 +29,7 @@
             :style="tableStyle"
             :cell-style="forceTransparentCellStyle"
             :header-cell-style="forceTransparentCellStyle"
+            :row-style="forceTransparentRowStyle"
             :row-class-name="'no-hover-row'"
           >
             <el-table-column label="预览" width="90">
@@ -143,6 +144,7 @@ const tableStyle = computed(() => ({
   '--el-table-header-bg-color': 'transparent'
 }))
 const forceTransparentCellStyle = () => ({ backgroundColor: 'transparent' })
+const forceTransparentRowStyle = () => ({ backgroundColor: 'transparent' })
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B'
