@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -35,9 +36,9 @@ type Config struct {
 	RedisDB       int
 
 	// 上传配置
-	MaxFileSize   int64
-	AllowedTypes  []string
-	UploadPath    string
+	MaxFileSize  int64
+	AllowedTypes []string
+	UploadPath   string
 }
 
 var AppConfig *Config
@@ -51,9 +52,20 @@ func LoadConfig() {
 	redisDB, _ := strconv.Atoi(getEnv("REDIS_DB", "0"))
 	maxFileSize, _ := strconv.ParseInt(getEnv("MAX_FILE_SIZE", "10485760"), 10, 64) // 10MB
 
+	// 端口与允许类型（从环境变量解析）
+	port := getEnv("SERVER_PORT", getEnv("PORT", "8080"))
+	allowedTypesStr := getEnv("ALLOWED_TYPES", "image/jpeg,image/png,image/gif,image/webp")
+	var allowedTypes []string
+	for _, t := range strings.Split(allowedTypesStr, ",") {
+		tt := strings.TrimSpace(t)
+		if tt != "" {
+			allowedTypes = append(allowedTypes, tt)
+		}
+	}
+
 	AppConfig = &Config{
 		// 服务器配置
-		Port: getEnv("PORT", "8080"),
+		Port: port,
 
 		// 数据库配置
 		DBHost:     getEnv("DB_HOST", "localhost"),
@@ -62,7 +74,7 @@ func LoadConfig() {
 		DBPassword: getEnv("DB_PASSWORD", ""),
 		DBName:     getEnv("DB_NAME", "image_host"),
 
-		// Cloudflare R2 配置
+		// Cloudflare R2 配置（保留结构以兼容，但不强制使用）
 		R2AccountID:       getEnv("R2_ACCOUNT_ID", ""),
 		R2AccessKeyID:     getEnv("R2_ACCESS_KEY_ID", ""),
 		R2SecretAccessKey: getEnv("R2_SECRET_ACCESS_KEY", ""),
@@ -79,7 +91,7 @@ func LoadConfig() {
 
 		// 上传配置
 		MaxFileSize:  maxFileSize,
-		AllowedTypes: []string{"image/jpeg", "image/png", "image/gif", "image/webp"},
+		AllowedTypes: allowedTypes,
 		UploadPath:   getEnv("UPLOAD_PATH", "./uploads"),
 	}
 }

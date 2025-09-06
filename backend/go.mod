@@ -3,7 +3,7 @@ module image-host
 go 1.21
 
 require (
-	github.com/aws/aws-sdk-go v1.45.25
+
 	github.com/disintegration/imaging v1.6.2
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1

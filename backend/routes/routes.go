@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"image-host/config"
 	"image-host/controllers"
 	"image-host/middleware"
 
@@ -67,7 +68,7 @@ func SetupRoutes() *gin.Engine {
 
 	// 静态文件服务
 	r.Static("/static", "./static")
-	r.Static("/uploads", "./uploads")
+	r.Static("/uploads", config.AppConfig.UploadPath)
 
 	// 404 处理
 	r.NoRoute(func(c *gin.Context) {

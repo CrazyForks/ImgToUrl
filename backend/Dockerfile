@@ -44,9 +44,9 @@ WORKDIR /app
 # 从构建阶段复制二进制文件
 COPY --from=builder /app/main .
 
-# 创建必要的目录
-RUN mkdir -p logs temp && \
-    chown -R appuser:appgroup /app
+# 创建必要的目录并赋权（确保挂载卷有写权限）
+RUN mkdir -p logs temp /data/uploads && \
+    chown -R appuser:appgroup /app /data/uploads
 
 # 切换到非root用户
 USER appuser
@@ -56,7 +56,7 @@ EXPOSE 8080
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8080/api/health || exit 1
+    CMD curl -f http://localhost:8080/health || exit 1
 
 # 启动应用
 CMD ["./main"]

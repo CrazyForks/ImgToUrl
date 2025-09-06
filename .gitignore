@@ -1,74 +1,36 @@
-# 环境变量文件
+# Node frontend
+frontend/node_modules/
+frontend/dist/
+
+# Env and secrets
 .env
-.env.local
-.env.production
-.env.development
+.env.*
+*.pem
+*.key
 
-# 依赖目录
-node_modules/
-vendor/
-
-# 构建产物
-dist/
-build/
-*.exe
-*.dll
-*.so
-*.dylib
-
-# 日志文件
-*.log
+# Logs
 logs/
+*.log
 
-# 临时文件
-*.tmp
-*.temp
-.DS_Store
-Thumbs.db
+# Local uploads and temp
+backend/uploads/
+uploads/
+temp/
+temp/**
 
-# IDE文件
+# Go build artifacts
+backend/main
+*.exe
+*.out
+
+# Docker overrides
+docker-compose.override.yml
+
+# Nginx SSL
+nginx/ssl/
+
+# OS/IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
-
-# 上传文件目录
-uploads/
-static/
-
-# Go相关
-*.test
-*.out
-go.work
-go.work.sum
-
-# 数据库文件
-*.db
-*.sqlite
-*.sqlite3
-
-# 缓存目录
-.cache/
-.npm/
-.yarn/
-
-# 操作系统文件
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-
-# 备份文件
-*.bak
-*.backup
-*.old
-
-# 压缩文件
-*.zip
-*.tar.gz
-*.rar
-*.7z
