@@ -394,10 +394,24 @@ const minFileSize = computed(() => {
 
  // 存储使用率：使用真实磁盘总容量
 const storageUsagePercentage = computed(() => {
-  const totalCapacity = systemStatus.value?.disk_total || 0
-  const usedSpace = stats.value.total_size || 0
+  // 总容量优先使用后端值，若为 0 则用 used+free 推算
+  const totalCapacity =
+    (systemStatus.value?.disk_total && systemStatus.value.disk_total > 0
+      ? systemStatus.value.disk_total
+      : ((systemStatus.value?.disk_used || 0) + (systemStatus.value?.disk_free || 0))) || 0
+
+  // 已用空间优先用图片总大小；若为 0 则回退到磁盘已用
+  const usedSpace =
+    (stats.value.total_size && stats.value.total_size > 0
+      ? stats.value.total_size
+      : (systemStatus.value?.disk_used || 0))
+
   if (!totalCapacity) return 0
-  return Math.min(Math.round((usedSpace / totalCapacity) * 100), 100)
+  const percent = (usedSpace / totalCapacity) * 100
+  if (!isFinite(percent) || percent <= 0) return 0
+  const value = Number(percent.toFixed(2))
+  // 极小但非零时，显示最小 0.01% 以便可见
+  return Math.min(value === 0 ? 0.01 : value, 100)
 })
 
  // 系统运行时间（来自后端秒数）
