@@ -64,7 +64,7 @@
             <div class="section-actions">
               <el-button size="small" @click="clearHistory">
                 <el-icon><Delete /></el-icon>
-                清空历史
+                清空本地历史
               </el-button>
             </div>
           </div>
@@ -136,9 +136,11 @@
                     </template>
                   </el-dropdown>
                   
-                  <el-button size="small" @click="removeImage(image.uuid)">
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
+                  <el-tooltip content="仅从列表移除，不删除服务器图片">
+                    <el-button size="small" @click="removeImage(image.uuid)">
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
+                  </el-tooltip>
                 </div>
               </div>
             </div>
@@ -392,8 +394,8 @@ const removeImage = (uuid: string) => {
 const clearHistory = async () => {
   try {
     await ElMessageBox.confirm(
-      '确定要清空所有上传历史吗？此操作不可恢复。',
-      '确认清空',
+      '仅清除本地上传历史，不会删除服务器图片。是否继续？',
+      '清空本地历史',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -401,7 +403,7 @@ const clearHistory = async () => {
       }
     )
     uploadStore.clearUploadedImages()
-    ElMessage.success('历史记录已清空')
+    ElMessage.success('已清空本地历史（不影响服务器图片）')
   } catch {
     // 用户取消操作
   }
