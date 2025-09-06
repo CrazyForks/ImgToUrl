@@ -734,10 +734,11 @@ onMounted(async () => {
       border-radius: 12px;
       overflow: hidden;
       cursor: pointer;
-      transition: transform 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      transition: box-shadow 0.3s ease;
 
       &:hover {
-        transform: translateY(-4px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
       }
 
       .image-container {
@@ -751,6 +752,7 @@ onMounted(async () => {
           object-fit: cover;
           opacity: 0;
           transition: opacity 0.3s ease;
+          pointer-events: none;
         }
 
         .image-overlay {
@@ -772,9 +774,7 @@ onMounted(async () => {
           }
         }
 
-        &:hover .image-overlay {
-          opacity: 1;
-        }
+        /* hover 交给外层 .image-card，避免靠边抖动 */
       }
 
       .image-info {
@@ -958,6 +958,12 @@ onMounted(async () => {
     }
   }
 }
+/* 扩大 hover 区域并启用 overlay 点击，避免靠边抖动 */
+.grid-view .image-card:hover .image-container .image-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* 预览弹窗暗色主题与遮罩 */
 :deep(.preview-overlay) {
   background: rgba(0, 0, 0, 0.85);
