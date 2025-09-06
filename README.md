@@ -49,7 +49,53 @@
 └── nginx/                 # 可选的 Nginx 示例
 ```
 
-## 快速开始（本地）
+## Docker Compose 部署（推荐）
+
+### 一键部署
+```bash
+# 克隆项目
+git clone <repository-url>
+cd 图床转换
+
+# 启动所有服务
+docker-compose up -d
+```
+
+服务启动后：
+- 前端访问地址：http://localhost:8080
+- 默认管理员账号：root / 123456
+
+### 服务说明
+- **mysql**: MySQL 8.0 数据库
+- **backend**: Go 后端服务（端口 8080）
+- **web**: Nginx 前端服务（映射到宿主机 8080 端口）
+
+### 数据持久化
+- MySQL 数据：`mysql_data` 卷
+- 上传文件：`uploads_data` 卷
+
+### 环境变量配置
+如需自定义配置，可修改 `docker-compose.yml` 中的环境变量：
+- 数据库密码：`MYSQL_ROOT_PASSWORD`、`MYSQL_PASSWORD`
+- 允许的文件类型：`ALLOWED_TYPES`
+- 上传路径：`UPLOAD_PATH`
+
+### 常用命令
+```bash
+# 查看服务状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+
+# 重新构建并启动
+docker-compose up -d --build
+```
+
+## 快速开始（本地开发）
 ### 依赖
 - Node.js ≥ 16
 - Go ≥ 1.19
