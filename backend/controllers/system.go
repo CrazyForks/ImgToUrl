@@ -10,7 +10,9 @@ import (
 	"image-host/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
 type SystemController struct{}
@@ -55,6 +57,28 @@ func (sc *SystemController) Status(c *gin.Context) {
 		diskUsed = 0
 	}
 
+	// 内存与 CPU
+	vm, _ := mem.VirtualMemory()
+	cpuPercents, _ := cpu.Percent(200*time.Millisecond, false)
+	var cpuUsage float64
+	if len(cpuPercents) > 0 {
+		cpuUsage = cpuPercents[0]
+	}
+
+	// 规范化内存与磁盘占比
+	memTotal := int64(0)
+	memUsed := int64(0)
+	memFree := int64(0)
+	memUsedPercent := float64(0)
+	if vm != nil {
+		memTotal = int64(vm.Total)
+		memUsed = int64(vm.Used)
+		// 选择 Available 作为“可用”，更贴近日常理解
+		memFree = int64(vm.Available)
+		memUsedPercent = vm.UsedPercent
+	}
+	diskUsedPercent := usage.UsedPercent
+
 	// 数据库汇总
 	var totalImages int64
 	database.DB.Model(&models.Image{}).Count(&totalImages)
@@ -94,6 +118,14 @@ func (sc *SystemController) Status(c *gin.Context) {
 			"average_file_size": averageSize,
 			"max_file_size":     maxSize,
 			"min_file_size":     minSize,
+
+			// 资源占用（实时）
+			"disk_used_percent": diskUsedPercent,
+			"mem_total":         memTotal,
+			"mem_used":          memUsed,
+			"mem_free":          memFree,
+			"mem_used_percent":  memUsedPercent,
+			"cpu_usage":         cpuUsage,
 		},
 	})
 }

@@ -234,6 +234,35 @@
               </div>
             </div>
 
+            <!-- 系统资源占用 -->
+            <div class="detail-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <el-icon><DataBoard /></el-icon>
+                  系统资源占用
+                </h3>
+              </div>
+              <div class="card-content">
+                <div class="storage-progress" style="margin-bottom:1rem">
+                  <div class="progress-info">
+                    <span>CPU 占用</span>
+                    <span>{{ Number((systemStatus?.cpu_usage ?? 0).toFixed(2)) }}%</span>
+                  </div>
+                  <el-progress :percentage="Number((systemStatus?.cpu_usage ?? 0).toFixed(2))" :stroke-width="12" color="#409EFF" />
+                  <div class="progress-info" style="margin-top:1rem">
+                    <span>内存使用</span>
+                    <span>{{ Number((systemStatus?.mem_used_percent ?? 0).toFixed(2)) }}%（已用 {{ formatFileSize(systemStatus?.mem_used || 0) }} / 共 {{ formatFileSize(systemStatus?.mem_total || 0) }}）</span>
+                  </div>
+                  <el-progress :percentage="Number((systemStatus?.mem_used_percent ?? 0).toFixed(2))" :stroke-width="12" color="#E6A23C" />
+                  <div class="progress-info" style="margin-top:1rem">
+                    <span>磁盘使用</span>
+                    <span>{{ Number(((systemStatus?.disk_used_percent ?? storageUsagePercentage)).toFixed(2)) }}%（已用 {{ formatFileSize(systemStatus?.disk_used || 0) }} / 共 {{ formatFileSize(systemStatus?.disk_total || 0) }}）</span>
+                  </div>
+                  <el-progress :percentage="Number(((systemStatus?.disk_used_percent ?? storageUsagePercentage)).toFixed(2))" :stroke-width="12" color="#67C23A" />
+                </div>
+              </div>
+            </div>
+
             <!-- 系统信息 -->
             <div class="detail-card">
               <div class="card-header">
@@ -347,7 +376,9 @@ const uploadStore = useUploadStore()
 // 状态
 const loading = ref(false)
 const systemStatus = ref<SystemStatus | null>(null)
+const localUptimeSeconds = ref<number>(0)
 let refreshTimer: number | undefined
+let uptimeTimer: number | undefined
 
 // 计算属性
 const stats = computed(() => uploadStore.stats)
@@ -416,7 +447,7 @@ const storageUsagePercentage = computed(() => {
 
  // 系统运行时间（来自后端秒数）
 const systemUptime = computed(() => {
-  const s = systemStatus.value?.uptime_seconds
+  const s = localUptimeSeconds.value
   if (s === undefined) return '--'
   return formatDuration(s)
 })
@@ -509,6 +540,10 @@ const fetchSystemStatus = async () => {
   const res = await getSystemStatus()
   if (res.success) {
     systemStatus.value = res.data
+    // 同步本地秒表，避免长时间漂移
+    if (typeof res.data.uptime_seconds === 'number') {
+      localUptimeSeconds.value = res.data.uptime_seconds
+    }
   }
 }
 
@@ -517,10 +552,14 @@ onMounted(async () => {
   try {
     await uploadStore.fetchStats()
     await fetchSystemStatus()
-    // 每30秒自动刷新
+    // 每5秒刷新系统状态与统计（实时资源更敏感）
     refreshTimer = window.setInterval(async () => {
       await Promise.all([uploadStore.fetchStats(), fetchSystemStatus()])
-    }, 30000)
+    }, 5000)
+    // 每秒本地递增运行时间
+    uptimeTimer = window.setInterval(() => {
+      localUptimeSeconds.value += 1
+    }, 1000)
   } catch (error) {
     console.error('加载统计数据失败:', error)
   } finally {
@@ -531,6 +570,10 @@ onUnmounted(() => {
   if (refreshTimer) {
     clearInterval(refreshTimer)
     refreshTimer = undefined
+  }
+  if (uptimeTimer) {
+    clearInterval(uptimeTimer)
+    uptimeTimer = undefined
   }
 })
 </script>

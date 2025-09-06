@@ -14,6 +14,14 @@ export interface SystemStatus {
   average_file_size: number
   max_file_size: number
   min_file_size: number
+
+  // Realtime resources
+  disk_used_percent: number
+  mem_total: number
+  mem_used: number
+  mem_free: number
+  mem_used_percent: number
+  cpu_usage: number
 }
 
 // 创建 axios 实例
