@@ -124,7 +124,7 @@
               
               <div class="image-actions">
                 <div class="url-input-group">
-                  <el-input v-model="image.public_url" 
+                  <el-input :model-value="toAbsoluteUrl(image.public_url)" 
                            readonly 
                            size="small" 
                            placeholder="图片链接">
@@ -396,7 +396,8 @@ const downloadImage = (image: ImageInfo | null) => {
   if (!image) return
   
   const link = document.createElement('a')
-  link.href = image.public_url
+  const abs = toAbsoluteUrl(image.public_url)
+  link.href = abs
   link.download = image.original_name
   link.target = '_blank'
   document.body.appendChild(link)
