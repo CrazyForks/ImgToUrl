@@ -288,6 +288,19 @@ onMounted(fetchList)
   }
   .ops :deep(.el-button) {
     padding: 6px 8px;
+    box-sizing: border-box;
+    min-height: 28px;
+  }
+  .ops :deep(.el-button:hover),
+  .ops :deep(.el-button:focus),
+  .ops :deep(.el-button:active) {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .ops :deep(.el-button.is-plain:hover),
+  .ops :deep(.el-button:hover) {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
   }
 }
 
@@ -305,7 +318,7 @@ onMounted(fetchList)
 
 /* Stabilize table layout and prevent hover flicker */
 .table-section {
-  contain: paint;
+  /* contain: paint; */
 }
 .table-section .thumb,
 .table-section .thumb img {
@@ -343,6 +356,12 @@ onMounted(fetchList)
   background-color: transparent !important;
   transition: none !important;
 }
+/* 强制覆盖所有行 hover 高亮（提升优先级，适配不同实现） */
+:deep(.el-table--enable-row-hover .el-table__body tr:hover > td),
+:deep(.el-table__body tr.hover-row > td),
+:deep(.el-table__body tr:hover > td) {
+  background-color: transparent !important;
+}
 /* 允许右侧固定列内容不被裁剪（Popconfirm/按钮完全可见） */
 :deep(.el-table__fixed-right),
 :deep(.el-table__fixed-right .el-table__body-wrapper) {
@@ -352,10 +371,13 @@ onMounted(fetchList)
 :deep(.el-table td.el-table__cell) {
   padding: 12px 8px !important;
   vertical-align: middle;
+  white-space: nowrap;
 }
 .table-section .ops {
   position: relative;
   z-index: 3;
+  display: inline-flex;
+  align-items: center;
 }
 :deep(.el-popper) {
   z-index: 3000 !important;
