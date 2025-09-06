@@ -45,10 +45,12 @@
                 <span v-else>永久</span>
               </template>
             </el-table-column>
-            <el-table-column width="120" label="操作">
+            <el-table-column width="140" label="操作">
               <template #default="{ row }">
                 <el-popconfirm title="删除该游客及其图片？" @confirm="onDeleteCode(row.id)">
-                  <el-button size="small" type="danger">删除</el-button>
+                  <template #reference>
+                    <el-button size="small" type="danger">删除</el-button>
+                  </template>
                 </el-popconfirm>
               </template>
             </el-table-column>
@@ -151,5 +153,20 @@ const onDeleteCode = async (id: number) => {
 <style scoped>
 .main { max-width: 960px; margin: 24px auto; padding: 0 16px; }
 .title { color: #fff; margin: 0 0 16px; }
-.card { background: rgba(255,255,255,0.06); color: #e5e7eb; }
+/* 设置页卡片：去除糊感、禁用悬停位移/滤镜 */
+.card {
+  background: #111827;         /* 更清晰的深色纯色背景（tailwind slate-900） */
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: none;
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+/* 悬停不移动不变形 */
+.card:hover {
+  transform: none !important;
+  filter: none !important;
+  box-shadow: none;
+}
 </style>

@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"image-host/config"
@@ -85,6 +86,8 @@ func (a *AuthController) GuestLogin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid code"})
 		return
 	}
+	// 兼容大小写/多余空格
+	req.Code = strings.ToUpper(strings.TrimSpace(req.Code))
 
 	var gc models.GuestCode
 	// 允许永久（ExpiresAt 为空）或未过期
