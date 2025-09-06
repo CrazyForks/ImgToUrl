@@ -330,20 +330,28 @@ onMounted(fetchList)
   overflow: visible;
 }
 :deep(.el-table) {
-  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.06);
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.02);
   --el-table-bg-color: transparent;
 }
 :deep(.el-table__row > td) {
   background-color: transparent !important;
   transition: none !important;
+  padding: 12px 0 !important;
 }
 :deep(.el-table__row:hover > td) {
-  background-color: rgba(255, 255, 255, 0.06) !important;
+  background-color: rgba(255, 255, 255, 0.02) !important;
   transition: none !important;
 }
 /* 允许右侧固定列内容不被裁剪（Popconfirm/按钮完全可见） */
 :deep(.el-table__fixed-right),
 :deep(.el-table__fixed-right .el-table__body-wrapper) {
   overflow: visible !important;
+}
+:deep(.el-table__row) {
+  height: 80px !important;
+}
+:deep(.el-table td.el-table__cell) {
+  padding: 16px 0 !important;
+  vertical-align: middle;
 }
 </style>
