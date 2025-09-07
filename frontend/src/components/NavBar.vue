@@ -2,7 +2,7 @@
   <nav class="navbar">
     <div class="nav-content">
       <router-link to="/" class="logo">
-        <img src="https://qone.kuz7.com/uploads/images/2025/09/06/c9d411bd-4715-4516-86cb-1ac4c56e7c4f.png" alt="logo" style="height:28px;width:auto;border-radius:6px;display:block;" />
+        <img src="/logo.png" alt="logo" style="height:28px;width:auto;border-radius:6px;display:block;" />
         <span class="logo-text">图床转换系统</span>
       </router-link>
       <div class="nav-menu">
