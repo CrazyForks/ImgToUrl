@@ -1,86 +1,188 @@
-# 图床转换（本地存储版）
+# ImgToUrl（图床转换）
 
-基于 Go + Vue3 + MySQL 的图片上传与链接生成系统。当前实现仅使用本地磁盘存储（backend/uploads），不依赖任何云对象存储。后端提供鉴权、上传、列表/删除、统计与系统状态等接口，前端提供可视化上传与管理页面。
+基于 Go + Vue3 + MySQL 的图片上传与链接生成系统，支持多存储渠道（本地、Cloudflare R2、阿里云 OSS），并提供“渠道同步”能力，可将对象存储中的已有图片一键同步到站点数据库中。
 
-备注：代码中的服务名“R2”仅为历史命名，实际实现为本地文件存储。
+- 前端（Vue3 + Element Plus + Pinia）经 Nginx 反向代理到后端 API
+- 后端（Gin + GORM）提供鉴权、上传、列表、删除、统计、系统状态、渠道同步等接口
+- 数据库存储使用 MySQL，图片文件默认落地到本地磁盘（/uploads），可按需切换 R2/OSS
+- 渠道同步：从 R2/OSS 读取对象并写入站点图片表，支持前缀过滤、数量限制、覆盖更新
+
+提示：项目内“R2”名称为历史命名；当前实现已同时支持本地存储 / Cloudflare R2 / 阿里云 OSS 三种渠道。
 
 ## 功能概览
-- 账号与游客码（管理员登录、游客码登录；创建/查看/删除游客码）
-- 图片管理（单图/批量上传、列表、查询、删除、直链生成）
-- 统计与系统状态（总量、今日、平均/最大/最小，磁盘/内存/CPU、运行时长）
-- 安全与体验（速率限制、类型/大小校验、静态资源映射、统一错误码）
 
-## 界面预览
-- 首页  
-![](https://qone.kuz7.com/uploads/images/2025/09/07/d284da60-19b2-4682-b695-8a464eb45276.png)
+- 账号与游客码
+  - 管理员登录、游客码登录；创建/查看/删除游客码；自动清理过期游客码
+- 图片管理
+  - 单图与批量上传、分页列表、删除
+  - 直链生成（支持本地 / R2 / OSS，不同渠道生成策略不同）
+- 统计与系统状态
+  - 总数、容量、今日统计、平均/最大/最小
+  - 运行时长、磁盘/内存/CPU 占用等
+- 安全与体验
+  - 速率限制、类型/大小校验、统一错误码
+- 存储渠道
+  - 设置页切换 local / r2 / oss
+  - 同步渠道对象到站点（R2/OSS）——可在“存储内容”页一键同步
 
-- 上传  
-![](https://qone.kuz7.com/uploads/images/2025/09/07/9e63dd82-c1f5-4c79-a5d5-eb457dfc8e7e.png)
+## 系统架构
 
-- 统计  
-![](https://qone.kuz7.com/uploads/images/2025/09/07/803aa069-6d7a-436a-86ad-ab121dd485ae.png)
-
-- 设置  
-![](https://qone.kuz7.com/uploads/images/2025/09/07/78916c57-538d-49d8-9b82-8c14d65b4946.png)
-
-- 图库  
-![](https://qone.kuz7.com/uploads/images/2025/09/07/e74a7fa2-faf0-44f8-9086-77c151a8c678.png)
-
-## 技术栈
-- 前端：Vue 3、TypeScript、Vite、Element Plus、Pinia、Axios
+- 前端：Vue 3、TypeScript、Vite、Element Plus、Pinia、Axios（Nginx 提供静态与反代）
 - 后端：Go、Gin、GORM、MySQL
-- 存储：本地磁盘（默认 ./uploads）
-- 其他：可选 Redis 字段已预留（当前代码未实际启用）
+- 存储渠道：本地磁盘（默认）、Cloudflare R2（S3 兼容）、阿里云 OSS
+- 端口（生产容器）：
+  - 宿主机 8080 → web(Nginx) 80
+  - web → backend:8080（反向代理 /api 与 /uploads）
+- 端口（本地开发）：
+  - 前端 dev：3000（Vite），代理 /api、/uploads → 8080
+  - 后端 dev：8080
 
-## 目录结构（简化）
-```
-图床转换/
-├── backend/
-│   ├── config/            # 配置加载（.env）
-│   ├── controllers/       # Auth/Upload/System/GuestCode
-│   ├── database/          # MySQL 初始化与迁移/默认管理员
-│   ├── middleware/        # 速率限制、鉴权
-│   ├── models/            # Image/ImageStats/User/GuestCode
-│   ├── routes/            # 路由（/api/v1）
-│   ├── services/          # image 处理、本地存储（R2 命名）、游客码清理
-│   └── uploads/           # 本地图片目录（映射为 /uploads）
-├── frontend/
-│   └── src/               # 业务代码（api/views/components 等）
-└── nginx/                 # 可选的 Nginx 示例
-```
+## 一键部署（Docker Compose）
 
-## Docker Compose 部署（推荐）
+确保已安装 Docker 与 Docker Compose，然后执行：
 
-### 一键部署
 ```bash
 # 克隆项目
 git clone https://github.com/roseforljh/ImgToUrl.git
 cd ImgToUrl
 
-# 启动所有服务
+# 启动所有服务（MySQL / 后端 / Nginx 前端）
 docker-compose up -d
 ```
 
-服务启动后：
-- 前端访问地址：http://localhost:8080
+启动后：
+
+- 访问地址：http://localhost:8080
 - 默认管理员账号：root / 123456
+- 健康检查（被 web 反代至后端）：GET http://localhost:8080/health
 
-### 服务说明
-- **mysql**: MySQL 8.0 数据库
-- **backend**: Go 后端服务（端口 8080）
-- **web**: Nginx 前端服务（映射到宿主机 8080 端口）
+相关编排与配置：
 
-### 数据持久化
-- MySQL 数据：`mysql_data` 卷
-- 上传文件：`uploads_data` 卷
+- Nginx 站点与反代（/api、/uploads）：见 nginx/conf.d/default.conf
+- 后端容器环境变量由 docker-compose 注入（DB_HOST=mysql 等）
+- 静态文件与直链映射：/uploads → 后端 UPLOAD_PATH（容器内 /data/uploads）
 
-### 环境变量配置
-如需自定义配置，可修改 `docker-compose.yml` 中的环境变量：
-- 数据库密码：`MYSQL_ROOT_PASSWORD`、`MYSQL_PASSWORD`
-- 允许的文件类型：`ALLOWED_TYPES`
-- 上传路径：`UPLOAD_PATH`
+## 更新与升级
 
-### 常用命令
+拉取最新代码并重建容器：
+
+```bash
+cd ImgToUrl
+git pull
+docker-compose up -d --build
+```
+
+如遇构建缓存导致未更新，可先停止并重建：
+
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
+注意：
+- 若宿主 8080 端口被占用，需释放后再启动
+- 生产构建已禁用前端 Mock（在 nginx/Dockerfile 中设置 VITE_ENABLE_MOCK=false 的构建期变量）
+
+## 存储渠道配置
+
+在“设置”页（仅管理员可见）填写 R2/OSS 的访问参数并保存，后端将动态重载配置。
+
+- R2 参数：account_id、access_key_id、secret_access_key、bucket_name、endpoint、region、public_url（可选）
+- OSS 参数：access_key_id、secret_access_key、bucket_name、endpoint、region（可选）、public_url（可选）
+- provider：local / r2 / oss
+
+保存后，运行时会重新加载存储客户端。配置重载逻辑参见后端服务层的 ReloadConfig。
+
+## 渠道同步（R2 / OSS → 站点）
+
+场景：对象存储中已存在历史图片；希望统一纳入站点数据库，便于前端列表、删除与链接展示。
+
+- 操作入口：“存储内容”页顶部按钮“同步 R2 / 同步 OSS”
+- 默认参数：prefix=''（全部）、limit=-1（全量）、overwrite=true（更新已有记录）
+- 同步结果会提示统计：新增 / 更新 / 跳过，并自动刷新列表
+
+同步行为说明：
+- 生成的公共 URL 策略：
+  - 若配置了 public_url 前缀，则直接使用该前缀拼接对象键
+  - 若未配置前缀且桶为私有，后端会生成带有效期的临时签名 URL（R2/OSS）
+  - 若无法签名，回退直链（要求公开可读）
+- 去重规则：以 r2_key + storage_provider 唯一识别；存在且 overwrite=false 时跳过；overwrite=true 时更新记录
+
+## 环境变量（后端）
+
+后端会从容器环境变量或 .env 文件读取配置，关键项如下：
+
+- 服务
+  - PORT / SERVER_PORT：后端服务端口（默认 8080）
+- 鉴权
+  - JWT_SECRET：签名密钥（默认 change_me_secret）
+  - JWT_EXPIRE_HOURS：过期时长（默认 72）
+  - DEFAULT_ADMIN / DEFAULT_PASSWORD：默认管理员账号与密码（默认 root / 123456）
+- 数据库
+  - DB_HOST / DB_PORT / DB_USER / DB_PASSWORD / DB_NAME
+- 上传
+  - MAX_FILE_SIZE：单文件大小限制（默认 10MB=10485760）
+  - ALLOWED_TYPES：允许的 MIME 类型（默认 image/jpeg,image/png,image/gif,image/webp）
+  - UPLOAD_PATH：本地存储路径（生产容器映射为 /data/uploads）
+- R2（可选）
+  - R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET_NAME / R2_ENDPOINT / R2_REGION / R2_PUBLIC_URL
+- OSS（可选）
+  - OSS_ACCESS_KEY_ID / OSS_SECRET_ACCESS_KEY / OSS_BUCKET_NAME / OSS_ENDPOINT / OSS_REGION / OSS_PUBLIC_URL
+
+提示：Compose 已注入必要的生产变量；若需自定义，请修改 docker-compose.yml 对应 environment。
+
+## 前端开发与构建
+
+本地开发：
+
+```bash
+cd frontend
+npm install
+npm run dev
+# 访问 http://localhost:3000
+# /api、/uploads 被代理到 http://localhost:8080
+```
+
+生产构建与运行：
+- Nginx 多阶段镜像将在构建阶段打包前端产物并复制到 /usr/share/nginx/html
+- 生产构建默认禁用 Mock（VITE_ENABLE_MOCK=false）
+
+## 后端开发与运行
+
+本地开发：
+
+```bash
+cd backend
+go mod tidy
+
+# 创建数据库（首次）
+# CREATE DATABASE image_host CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+# 配置 .env（示例）
+# SERVER_PORT=8080
+# JWT_SECRET=change_me_secret
+# DEFAULT_ADMIN=root
+# DEFAULT_PASSWORD=123456
+# DB_HOST=localhost
+# DB_PORT=3306
+# DB_USER=root
+# DB_PASSWORD=your_password
+# DB_NAME=image_host
+# MAX_FILE_SIZE=10485760
+# ALLOWED_TYPES=image/jpeg,image/png
+# UPLOAD_PATH=./uploads
+
+go run main.go
+# 健康检查：GET http://localhost:8080/health
+```
+
+启动后：
+- 自动迁移表结构（images、image_stats、users、guest_codes、storage_config）
+- 自动创建默认管理员（DEFAULT_ADMIN / DEFAULT_PASSWORD）
+- 静态映射：/uploads → UPLOAD_PATH
+
+## 常用命令（Docker）
+
 ```bash
 # 查看服务状态
 docker-compose ps
@@ -91,154 +193,55 @@ docker-compose logs -f
 # 停止服务
 docker-compose down
 
-# 重新构建并启动
+# 重建并启动
 docker-compose up -d --build
 ```
 
-## 快速开始（本地开发）
-### 依赖
-- Node.js ≥ 16
-- Go ≥ 1.19
-- MySQL ≥ 8.0
-
-### 1) 创建数据库
-```sql
-CREATE DATABASE image_host CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-### 2) 后端
-```bash
-cd backend
-go mod tidy
-```
-
-在 backend 目录下新建 `.env`（示例）：
-```env
-# 服务
-SERVER_PORT=8080
-
-# 鉴权
-JWT_SECRET=change_me_secret
-JWT_EXPIRE_HOURS=72
-DEFAULT_ADMIN=root
-DEFAULT_PASSWORD=123456
-
-# 数据库
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=image_host
-
-# 上传
-MAX_FILE_SIZE=10485760
-# 默认允许类型（建议与处理能力一致，见“上传与格式”）
-ALLOWED_TYPES=image/jpeg,image/png
-UPLOAD_PATH=./uploads
-```
-
-启动：
-```bash
-go run main.go
-```
-- 健康检查：GET http://localhost:8080/health
-- 静态资源：/uploads 映射到 UPLOAD_PATH
-
-### 3) 前端
-```bash
-cd frontend
-npm install
-npm run dev
-```
-默认地址：http://localhost:3000
-
-## 功能详解
-### 1. 账号与游客码
-- 登录
-  - POST /api/v1/auth/login
-  - Body: { "username": string, "password": string }
-  - 返回: { success, data: { token, username, expires } }
-  - 说明：首次启动会自动创建默认管理员（用户名 DEFAULT_ADMIN，密码 DEFAULT_PASSWORD）。
-- 游客码登录
-  - POST /api/v1/auth/guest-login
-  - Body: { "code": string }（不区分大小写，自动去除空格）
-  - 返回: { success, data: { token, username: "guest", expires } }
-- 自身信息
-  - GET /api/v1/auth/me（受保护）
-- 修改密码
-  - POST /api/v1/auth/change-password（受保护）
-  - Body: { "old_password": string, "new_password": string }
-
-- 游客码管理（仅管理员，受保护）
-  - POST /api/v1/guest-codes/        创建游客码（支持永久码或过期时间）
-  - GET  /api/v1/guest-codes/        列出游客码
-  - DELETE /api/v1/guest-codes/:id   删除游客码
-  - 备注：服务包含后台清理任务，定期移除过期游客码。
-
-鉴权方式：除 /health、/api/v1/auth/login、/api/v1/auth/guest-login 外，其余均需在请求头携带
-Authorization: Bearer <token>
-
-### 2. 图片上传与管理
-- 单图上传（受保护）
-  - POST /api/v1/images/upload
-  - multipart/form-data：字段名 image
-  - 返回：uuid、public_url、尺寸、大小、类型、时间等
-- 批量上传（受保护）
-  - POST /api/v1/batch-upload
-  - multipart/form-data：字段名 images（最多 10 张，支持总大小限制）
-- 图片列表（受保护）
-  - GET /api/v1/images?page=1&page_size=20
-  - 返回：{ items, total, page, page_size }
-  - 权限：管理员可查看全部；其他仅查看自己上传的记录
-- 获取图片详情（受保护）
-  - GET /api/v1/images/:uuid
-- 删除图片（受保护）
-  - DELETE /api/v1/images/:uuid
-  - 逻辑：删除本地文件（忽略不存在错误）→ 硬删数据库记录
-- 统计汇总（受保护）
-  - GET /api/v1/images/stats/summary
-  - 返回：total_images、total_size、today_images 等
-
-存储说明：后端将文件保存到 UPLOAD_PATH 下的 images/yyyy/mm/dd 目录；public_url 为相对路径 /uploads/...，由后端静态映射提供访问。
-
-### 3. 系统状态与健康检查
-- 健康检查（无需鉴权）
-  - GET /health
-- 系统状态（受保护）
-  - GET /api/v1/system/status
-  - 返回：uptime_seconds、磁盘（total/free/used/used_percent）、内存（total/used/free/used_percent）、cpu_usage、以及图片汇总（总量/今日/平均/最大/最小）
-
-### 4. 速率限制与错误规范
-- 速率限制
-  - 以 IP 为维度，默认 60 请求/分钟
-  - 超限返回 429，包含 { error, code: "RATE_LIMIT_EXCEEDED", retry_after: 60 }
-- 错误响应
-  - 统一返回 { error, code }，便于前端处理
-
-## 上传与格式
-- 建议默认允许：image/jpeg, image/png
-- 单文件大小上限：MAX_FILE_SIZE（默认 10MB）
-- 图片处理：
-  - >1MB 会尝试压缩（JPEG 85% 质量；PNG 使用最佳压缩）
-  - 自动获取宽高与缩略图（300x300）
-- 若需 GIF/WebP：
-  - 在后端增加对应解码器导入（示例：GIF 需 import image/gif，WebP 可用 golang.org/x/image/webp）
-  - 同步将 ALLOWED_TYPES 加入相应 MIME 类型
-
-## 前端页面（简要）
-- 登录/Login：用户名密码或游客码登录；本地存储 token
-- 上传/Upload：单图与批量上传，显示上传进度与结果
-- 图库/Gallery：分页查看已上传图片，支持复制直链/Markdown/HTML/BBCode
-- 存储/Storage：查看直链与访问路径（/uploads/...）
-- 统计/Stats：展示图片统计与系统状态（磁盘/内存/CPU/运行时间）
-- 设置/Settings：修改密码等
-- 说明：前端通过 /api/v1 前缀请求后端，并在请求头附带 Authorization
-
 ## 常见问题
-- 直链 404：确认 UPLOAD_PATH 存在且后端路由已映射 /uploads
-- 无法写入：检查进程对 UPLOAD_PATH 的写权限
-- 跨域：前后端同域最佳；否则在后端 CORS 放行前端域名
-- 只看到自己的图片：非管理员账号仅能查看/删除自己上传的数据
+
+- 8080 端口被占用
+  - 修改宿主端口或释放占用进程；或调整 docker-compose.yml 的 ports 映射
+- 图片直链无法访问（R2/OSS）
+  - 若桶为私有且未配置 public_url，后端会生成签名 URL；请确认签名有效期与代理未屏蔽签名参数
+  - 若仍无法访问，检查 endpoint/bucket 是否正确、对象键是否存在
+- 本地上传 404
+  - 确认 UPLOAD_PATH 可写入、后端容器的 /data/uploads 已正确挂载
+- 只看到自己的图片
+  - 非管理员仅能查看/删除自己上传的图片；管理员可查看全部
+- 前端 Mock
+  - 生产构建默认禁用；如需在开发启用，请在前端环境中设置 VITE_ENABLE_MOCK=true
 
 ## 许可证
+
 MIT
+
+## 界面截图
+
+### 存储渠道配置界面
+以下三张图展示了“存储配置渠道”的设置界面，用于切换和配置 Local（本地）、Cloudflare R2、阿里云 OSS 等参数。管理员在“设置”页中填写并保存后，后端会动态重载配置，运行时立即生效。
+
+- 存储配置界面示例 1  
+  ![存储配置示例 1](https://qone.kuz7.com/uploads/images/2025/10/12/5d1163fa-8f06-4513-8371-a1ed248af5d6.png)
+
+- 存储配置界面示例 2  
+  ![存储配置示例 2](https://qone.kuz7.com/uploads/images/2025/10/12/52095a04-a194-4a12-8431-71d283da2708.png)
+
+- 存储配置界面示例 3  
+  ![存储配置示例 3](https://qone.kuz7.com/uploads/images/2025/10/12/1d3d5ec8-b8af-4e74-8134-e9fe237d8c47.png)
+
+说明：
+- 填写 R2/OSS 的访问参数（access_key、secret、bucket、endpoint、region 等）
+- 可选填写 Public URL 前缀（建议使用 CDN 域名），用于生成更稳定的公共访问链接
+- 选择 provider：local / r2 / oss；保存后立即切换
+
+### 渠道同步功能界面
+该界面用于“一键同步”对象存储（R2/OSS）中的历史图片到站点数据库，便于前端列表、复制链接、删除等统一管理。
+
+- 渠道同步界面  
+  ![渠道同步界面](https://qone.kuz7.com/uploads/images/2025/10/12/640591b2-c722-42d2-9e3d-3b08dd90498d.png)
+
+说明：
+- 入口在“存储内容”页顶部：“同步 R2”“同步 OSS”
+- 默认参数：prefix=''（全部）、limit=-1（全量）、overwrite=true（更新已有记录）
+- 同步完成后显示统计：新增/更新/跳过，并自动刷新列表
+- 公共 URL 生成策略：优先 Public URL 前缀；私有桶场景自动生成临时签名 URL；最后回退直链（需公开可读）

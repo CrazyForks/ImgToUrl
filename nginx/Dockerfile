@@ -4,6 +4,9 @@ WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm install --no-audit --no-fund
 COPY frontend/ .
+# Build-time env: disable mock for production builds
+ARG VITE_ENABLE_MOCK=false
+ENV VITE_ENABLE_MOCK=${VITE_ENABLE_MOCK}
 RUN npm run build
 
 FROM nginx:alpine
