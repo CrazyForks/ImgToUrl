@@ -47,7 +47,7 @@ git clone https://github.com/roseforljh/ImgToUrl.git
 cd ImgToUrl
 
 # 启动所有服务（MySQL / 后端 / Nginx 前端）
-docker-compose up -d
+docker compose up -d
 ```
 
 启动后：
@@ -59,7 +59,7 @@ docker-compose up -d
 相关编排与配置：
 
 - Nginx 站点与反代（/api、/uploads）：见 nginx/conf.d/default.conf
-- 后端容器环境变量由 docker-compose 注入（DB_HOST=mysql 等）
+- 后端容器环境变量由 docker compose 注入（DB_HOST=mysql 等）
 - 静态文件与直链映射：/uploads → 后端 UPLOAD_PATH（容器内 /data/uploads）
 
 ## 更新与升级
@@ -69,14 +69,14 @@ docker-compose up -d
 ```bash
 cd ImgToUrl
 git pull
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 如遇构建缓存导致未更新，可先停止并重建：
 
 ```bash
-docker-compose down
-docker-compose up -d --build
+docker compose down
+docker compose up -d --build
 ```
 
 注意：
@@ -129,7 +129,7 @@ docker-compose up -d --build
 - OSS（可选）
   - OSS_ACCESS_KEY_ID / OSS_SECRET_ACCESS_KEY / OSS_BUCKET_NAME / OSS_ENDPOINT / OSS_REGION / OSS_PUBLIC_URL
 
-提示：Compose 已注入必要的生产变量；若需自定义，请修改 docker-compose.yml 对应 environment。
+提示：Compose 已注入必要的生产变量；若需自定义，请修改 docker compose.yml 对应 environment。
 
 ## 前端开发与构建
 
@@ -185,22 +185,22 @@ go run main.go
 
 ```bash
 # 查看服务状态
-docker-compose ps
+docker compose ps
 
 # 查看日志
-docker-compose logs -f
+docker compose logs -f
 
 # 停止服务
-docker-compose down
+docker compose down
 
 # 重建并启动
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ## 常见问题
 
 - 8080 端口被占用
-  - 修改宿主端口或释放占用进程；或调整 docker-compose.yml 的 ports 映射
+  - 修改宿主端口或释放占用进程；或调整 docker compose.yml 的 ports 映射
 - 图片直链无法访问（R2/OSS）
   - 若桶为私有且未配置 public_url，后端会生成签名 URL；请确认签名有效期与代理未屏蔽签名参数
   - 若仍无法访问，检查 endpoint/bucket 是否正确、对象键是否存在
