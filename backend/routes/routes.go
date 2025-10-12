@@ -79,6 +79,12 @@ func SetupRoutes() *gin.Engine {
 
 				// 获取统计信息
 				images.GET("/stats/summary", controllers.Upload.GetStats)
+
+				// 一键清空（仅管理员）
+				images.POST("/clear", controllers.Upload.ClearImages)
+
+				// 同步对象存储到站点（仅管理员）
+				images.POST("/sync", controllers.Upload.SyncImages)
 			}
 
 			// 批量上传路由
@@ -96,6 +102,9 @@ func SetupRoutes() *gin.Engine {
 			system := protected.Group("/system")
 			{
 				system.GET("/status", controllers.System.Status)
+				// 存储配置：仅登录用户（实际页面仅 root 可见）
+				system.GET("/storage-config", controllers.System.GetStorageConfig)
+				system.POST("/storage-config", controllers.System.UpdateStorageConfig)
 			}
 		}
 	}

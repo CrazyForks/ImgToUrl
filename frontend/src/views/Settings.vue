@@ -61,6 +61,95 @@
           </el-table>
         </div>
       </el-card>
+
+      <!-- 存储配置（仅 root 可见） -->
+      <el-card v-if="isRoot" class="card" style="margin-top:16px">
+        <template #header>存储配置</template>
+        <div style="max-width:720px">
+          <el-form :model="storage" label-width="140px">
+            <el-form-item label="存储渠道">
+              <el-radio-group v-model="storage.provider">
+                <el-radio label="local">VPS 本地存储</el-radio>
+                <el-radio label="r2">Cloudflare R2</el-radio>
+                <el-radio label="oss">阿里云 OSS</el-radio>
+              </el-radio-group>
+            </el-form-item>
+
+            <el-alert
+              v-if="storage.provider === 'local'"
+              title="本地存储说明"
+              type="info"
+              :closable="false"
+              description="/uploads 映射到后端的 UPLOAD_PATH 目录。"
+              style="margin-bottom: 12px"
+            />
+
+            <template v-if="storage.provider === 'r2'">
+              <el-alert
+                title="R2 配置说明"
+                type="warning"
+                :closable="false"
+                description="请填写 R2 的 S3 兼容访问参数。当前版本若后端未启用 R2 SDK，会回退为本地存储。"
+                style="margin-bottom: 12px"
+              />
+              <el-form-item label="Account ID">
+                <el-input v-model="storage.r2.account_id" placeholder="例如：b1234567890abcdef" />
+              </el-form-item>
+              <el-form-item label="Access Key ID">
+                <el-input v-model="storage.r2.access_key_id" placeholder="访问密钥 ID" />
+              </el-form-item>
+              <el-form-item label="Secret Access Key">
+                <el-input v-model="storage.r2.secret_access_key" placeholder="访问密钥 Secret" type="password" show-password />
+              </el-form-item>
+              <el-form-item label="Bucket Name">
+                <el-input v-model="storage.r2.bucket_name" placeholder="存储桶名称" />
+              </el-form-item>
+              <el-form-item label="Endpoint">
+                <el-input v-model="storage.r2.endpoint" placeholder="例如：https://xxxxxxxxxxx.r2.cloudflarestorage.com" />
+              </el-form-item>
+              <el-form-item label="Region">
+                <el-input v-model="storage.r2.region" placeholder="通常为 auto" />
+              </el-form-item>
+              <el-form-item label="Public URL 前缀">
+                <el-input v-model="storage.r2.public_url" placeholder="用于生成公共访问 URL 的前缀（可选）" />
+              </el-form-item>
+            </template>
+
+            <template v-if="storage.provider === 'oss'">
+              <el-alert
+                title="OSS 配置说明"
+                type="warning"
+                :closable="false"
+                description="请填写阿里云 OSS 的接入参数。填写后保存即可切换到 OSS 存储。"
+                style="margin-bottom: 12px"
+              />
+              <el-form-item label="Access Key ID">
+                <el-input v-model="storage.oss.access_key_id" placeholder="访问密钥 ID" />
+              </el-form-item>
+              <el-form-item label="Secret Access Key">
+                <el-input v-model="storage.oss.secret_access_key" placeholder="访问密钥 Secret" type="password" show-password />
+              </el-form-item>
+              <el-form-item label="Bucket Name">
+                <el-input v-model="storage.oss.bucket_name" placeholder="存储桶名称" />
+              </el-form-item>
+              <el-form-item label="Endpoint">
+                <el-input v-model="storage.oss.endpoint" placeholder="例如：https://oss-cn-hangzhou.aliyuncs.com 或自定义加速域" />
+              </el-form-item>
+              <el-form-item label="Region">
+                <el-input v-model="storage.oss.region" placeholder="例如：oss-cn-hangzhou（可选）" />
+              </el-form-item>
+              <el-form-item label="Public URL 前缀">
+                <el-input v-model="storage.oss.public_url" placeholder="用于生成公共访问 URL 的前缀（可选，建议填写 CDN 域名）" />
+              </el-form-item>
+            </template>
+
+            <div style="display:flex; gap:8px; margin-top:8px">
+              <el-button :loading="scLoading" type="primary" @click="onSaveStorage">保存配置</el-button>
+              <el-button :loading="scLoading" @click="onReloadStorage">重新获取</el-button>
+            </div>
+          </el-form>
+        </div>
+      </el-card>
     </main>
   </div>
 </template>
@@ -70,6 +159,7 @@ import NavBar from '@/components/NavBar.vue'
 import { reactive, ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { changePassword, createGuestCode, listGuestCodes, deleteGuestCode } from '@/api/auth'
+import { getStorageConfig, updateStorageConfig, type StorageConfigData } from '@/api/system'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
@@ -113,7 +203,89 @@ const fetchCodes = async () => {
   if (res.success) codes.value = res.data || []
 }
 
+// 存储配置
+const storage = reactive<StorageConfigData>({
+  provider: 'local',
+  r2: {
+    account_id: '',
+    access_key_id: '',
+    secret_access_key: '',
+    bucket_name: '',
+    endpoint: '',
+    region: 'auto',
+    public_url: ''
+  },
+  oss: {
+    access_key_id: '',
+    secret_access_key: '',
+    bucket_name: '',
+    endpoint: '',
+    region: '',
+    public_url: ''
+  }
+})
+const scLoading = ref(false)
+
+const loadStorage = async () => {
+  if (!isRoot.value) return
+  scLoading.value = true
+  try {
+    const res = await getStorageConfig()
+    if (res.success && res.data) {
+      storage.provider = (res.data.provider as 'local' | 'r2' | 'oss') || 'local'
+      storage.r2 = {
+        account_id: res.data.r2?.account_id || '',
+        access_key_id: res.data.r2?.access_key_id || '',
+        secret_access_key: res.data.r2?.secret_access_key || '',
+        bucket_name: res.data.r2?.bucket_name || '',
+        endpoint: res.data.r2?.endpoint || '',
+        region: res.data.r2?.region || 'auto',
+        public_url: res.data.r2?.public_url || ''
+      }
+      storage.oss = {
+        access_key_id: res.data.oss?.access_key_id || '',
+        secret_access_key: res.data.oss?.secret_access_key || '',
+        bucket_name: res.data.oss?.bucket_name || '',
+        endpoint: res.data.oss?.endpoint || '',
+        region: res.data.oss?.region || '',
+        public_url: res.data.oss?.public_url || ''
+      }
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.message || '获取存储配置失败')
+  } finally {
+    scLoading.value = false
+  }
+}
+
+const onSaveStorage = async () => {
+  if (!isRoot.value) {
+    ElMessage.error('仅管理员可操作')
+    return
+  }
+  scLoading.value = true
+  try {
+    const res = await updateStorageConfig({
+      provider: storage.provider,
+      r2: { ...storage.r2 },
+      oss: { ...storage.oss }
+    })
+    if (res.success) {
+      ElMessage.success('已保存存储配置')
+    } else {
+      ElMessage.error(res.error || '保存失败')
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.message || '保存失败')
+  } finally {
+    scLoading.value = false
+  }
+}
+
+const onReloadStorage = () => loadStorage()
+
 onMounted(fetchCodes)
+onMounted(loadStorage)
 
 const onCreateCode = async () => {
   gLoading.value = true

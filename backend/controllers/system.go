@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -8,11 +9,13 @@ import (
 	"image-host/config"
 	"image-host/database"
 	"image-host/models"
+	"image-host/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
+	"gorm.io/gorm"
 )
 
 type SystemController struct{}
@@ -128,4 +131,144 @@ func (sc *SystemController) Status(c *gin.Context) {
 			"cpu_usage":         cpuUsage,
 		},
 	})
+}
+
+// GetStorageConfig 获取存储配置（仅 root）
+// GET /api/v1/system/storage-config
+func (sc *SystemController) GetStorageConfig(c *gin.Context) {
+	username := c.GetString("username")
+	if username != config.AppConfig.DefaultAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		return
+	}
+
+	var cfg models.StorageConfig
+	result := database.DB.First(&cfg)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			cfg = models.StorageConfig{Provider: "local"}
+			if err := database.DB.Create(&cfg).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to init storage config"})
+				return
+			}
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load storage config"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{
+		"provider": cfg.Provider,
+		"r2": gin.H{
+			"account_id":        cfg.R2AccountID,
+			"access_key_id":     cfg.R2AccessKeyID,
+			"secret_access_key": cfg.R2SecretAccessKey,
+			"bucket_name":       cfg.R2BucketName,
+			"endpoint":          cfg.R2Endpoint,
+			"region":            cfg.R2Region,
+			"public_url":        cfg.R2PublicURL,
+		},
+		"oss": gin.H{
+			"access_key_id":     cfg.OSSAccessKeyID,
+			"secret_access_key": cfg.OSSSecretAccessKey,
+			"bucket_name":       cfg.OSSBucketName,
+			"endpoint":          cfg.OSSEndpoint,
+			"region":            cfg.OSSRegion,
+			"public_url":        cfg.OSSPublicURL,
+		},
+	}})
+}
+
+// UpdateStorageConfig 更新存储配置（仅 root）
+// POST /api/v1/system/storage-config
+func (sc *SystemController) UpdateStorageConfig(c *gin.Context) {
+	username := c.GetString("username")
+	if username != config.AppConfig.DefaultAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		return
+	}
+
+	var payload struct {
+		Provider string `json:"provider"` // local / r2 / oss
+		R2       struct {
+			AccountID       string `json:"account_id"`
+			AccessKeyID     string `json:"access_key_id"`
+			SecretAccessKey string `json:"secret_access_key"`
+			BucketName      string `json:"bucket_name"`
+			Endpoint        string `json:"endpoint"`
+			Region          string `json:"region"`
+			PublicURL       string `json:"public_url"`
+		} `json:"r2"`
+		OSS struct {
+			AccessKeyID     string `json:"access_key_id"`
+			SecretAccessKey string `json:"secret_access_key"`
+			BucketName      string `json:"bucket_name"`
+			Endpoint        string `json:"endpoint"`
+			Region          string `json:"region"`
+			PublicURL       string `json:"public_url"`
+		} `json:"oss"`
+	}
+
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payload"})
+		return
+	}
+
+	if payload.Provider != "local" && payload.Provider != "r2" && payload.Provider != "oss" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid provider"})
+		return
+	}
+
+	var cfg models.StorageConfig
+	result := database.DB.First(&cfg)
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load storage config"})
+		return
+	}
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		cfg = models.StorageConfig{Provider: "local"}
+	}
+
+	// 更新字段
+	cfg.Provider = payload.Provider
+
+	// R2
+	cfg.R2AccountID = payload.R2.AccountID
+	cfg.R2AccessKeyID = payload.R2.AccessKeyID
+	cfg.R2SecretAccessKey = payload.R2.SecretAccessKey
+	cfg.R2BucketName = payload.R2.BucketName
+	cfg.R2Endpoint = payload.R2.Endpoint
+	cfg.R2Region = payload.R2.Region
+	if cfg.R2Region == "" {
+		cfg.R2Region = "auto"
+	}
+	cfg.R2PublicURL = payload.R2.PublicURL
+
+	// OSS
+	cfg.OSSAccessKeyID = payload.OSS.AccessKeyID
+	cfg.OSSSecretAccessKey = payload.OSS.SecretAccessKey
+	cfg.OSSBucketName = payload.OSS.BucketName
+	cfg.OSSEndpoint = payload.OSS.Endpoint
+	cfg.OSSRegion = payload.OSS.Region
+	cfg.OSSPublicURL = payload.OSS.PublicURL
+
+	// 保存
+	if cfg.ID == 0 {
+		if err := database.DB.Create(&cfg).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create storage config"})
+			return
+		}
+	} else {
+		if err := database.DB.Save(&cfg).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update storage config"})
+			return
+		}
+	}
+
+	// 运行时生效：更新内存中的存储客户端配置（local/r2）
+	if services.R2 != nil {
+		services.R2.ReloadConfig()
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }

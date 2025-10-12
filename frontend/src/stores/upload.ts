@@ -13,6 +13,7 @@ export interface ImageInfo {
   height: number
   public_url: string
   created_at: string
+  storage_provider?: 'local' | 'r2' | 'oss'
 }
 
 export interface UploadResult {

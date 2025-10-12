@@ -43,6 +43,12 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false
+      },
+      // 本地存储静态文件映射到后端（开发环境）
+      '/uploads': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
       }
     }
   },

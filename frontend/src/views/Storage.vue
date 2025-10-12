@@ -10,14 +10,63 @@
               <el-icon><FolderOpened /></el-icon>
               存储内容
             </h1>
-            <p class="page-description">查看并管理当前 VPS 上存储的图片，可删除释放空间</p>
+            <p class="page-description">查看并管理当前存储内容（可在设置页切换渠道：VPS 本地 / Cloudflare R2 / 阿里云 OSS）</p>
           </div>
           <div class="actions">
             <el-input v-model="search" placeholder="搜索文件名..." clearable :prefix-icon="Search" class="search" />
+            <el-radio-group v-model="providerFilter" size="small">
+              <el-radio-button label="all">全部</el-radio-button>
+              <el-radio-button label="local">本地</el-radio-button>
+              <el-radio-button label="r2">R2</el-radio-button>
+              <el-radio-button label="oss">OSS</el-radio-button>
+            </el-radio-group>
             <el-button :loading="loading" @click="refresh" type="primary">
               <el-icon><Refresh /></el-icon>
               刷新
             </el-button>
+            <el-button :loading="syncLoading" @click="syncChannel('r2')" type="success">
+              <el-icon><Refresh /></el-icon>
+              同步 R2
+            </el-button>
+            <el-button :loading="syncLoading" @click="syncChannel('oss')" type="success">
+              <el-icon><Refresh /></el-icon>
+              同步 OSS
+            </el-button>
+            <el-select v-model="clearScope" size="small" style="width: 140px" placeholder="清空范围">
+              <el-option label="全部" value="all" />
+              <el-option label="仅本地" value="local" />
+              <el-option label="仅 R2" value="r2" />
+              <el-option label="仅 OSS" value="oss" />
+            </el-select>
+            <el-popconfirm
+              title="确定按所选范围一键清空所有图片吗？此操作不可恢复"
+              confirm-button-text="清空"
+              cancel-button-text="取消"
+              confirm-button-type="danger"
+              trigger="click"
+              teleported
+              placement="bottom"
+              width="320"
+              :persistent="true"
+              :show-after="0"
+              :hide-after="0"
+              :popper-options="{
+                strategy: 'fixed',
+                modifiers: [
+                  { name: 'flip', options: { fallbackPlacements: [] } },
+                  { name: 'preventOverflow', options: { tether: false, altAxis: false, padding: 8 } },
+                  { name: 'offset', options: { offset: [0, 8] } }
+                ]
+              }"
+              @confirm="clearAll"
+            >
+              <template #reference>
+                <el-button type="danger">
+                  <el-icon><Delete /></el-icon>
+                  一键清空
+                </el-button>
+              </template>
+            </el-popconfirm>
           </div>
         </section>
 
@@ -126,7 +175,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { FolderOpened, Refresh, Search, DocumentCopy, Download, Delete } from '@element-plus/icons-vue'
 import NavBar from '@/components/NavBar.vue'
-import { listImages, deleteImage } from '@/api/images'
+import { listImages, deleteImage, clearImages, syncImages } from '@/api/images'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -136,16 +185,41 @@ dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
 
 const loading = ref(false)
+const syncLoading = ref(false)
 const items = ref<ImageInfo[]>([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const search = ref('')
 
+// 渠道筛选：all | local | r2 | oss
+const providerFilter = ref<'all' | 'local' | 'r2' | 'oss'>('all')
+
+// 兼容旧数据的渠道推断：优先使用后端字段 storage_provider；否则依据 URL 推断
+const detectProvider = (row: ImageInfo): 'local' | 'r2' | 'oss' => {
+  const p = (row as any).storage_provider as 'local' | 'r2' | 'oss' | undefined
+  if (p === 'local' || p === 'r2' || p === 'oss') return p
+  if (row.public_url?.startsWith('/uploads/')) return 'local'
+  try {
+    const u = (row.public_url || '').toLowerCase()
+    if (u.includes('r2.cloudflarestorage.com') || u.includes('.r2.')) return 'r2'
+  } catch {}
+  return 'oss'
+}
+
+// 清空范围：all | local | r2 | oss
+const clearScope = ref<'all' | 'local' | 'r2' | 'oss'>('all')
+
 const filtered = computed(() => {
-  if (!search.value) return items.value
-  const q = search.value.toLowerCase()
-  return items.value.filter(i => i.original_name.toLowerCase().includes(q))
+  let list = items.value
+  if (providerFilter.value !== 'all') {
+    list = list.filter(i => detectProvider(i) === providerFilter.value)
+  }
+  if (search.value) {
+    const q = search.value.toLowerCase()
+    list = list.filter(i => i.original_name.toLowerCase().includes(q))
+  }
+  return list
 })
 const pagedItems = computed(() => {
   const start = (page.value - 1) * pageSize.value
@@ -217,6 +291,24 @@ const refresh = async () => {
   await fetchList()
 }
 
+const syncChannel = async (provider: 'r2' | 'oss') => {
+  try {
+    syncLoading.value = true
+    const res = await syncImages(provider, { prefix: '', limit: -1, overwrite: true })
+    if (res.success) {
+      const d = res.data || {}
+      ElMessage.success(`同步完成（${provider.toUpperCase()}）：新增 ${d.added ?? 0}，更新 ${d.updated ?? 0}，跳过 ${d.skipped ?? 0}`)
+      await fetchList()
+    } else {
+      ElMessage.error(res.error || '同步失败')
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.message || '同步失败')
+  } finally {
+    syncLoading.value = false
+  }
+}
+
 const handlePageChange = async (p: number) => {
   page.value = p
   await fetchList()
@@ -241,6 +333,24 @@ const download = (row: ImageInfo) => {
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
+}
+
+// 一键清空
+const clearAll = async () => {
+  try {
+    loading.value = true
+    const res = await clearImages(clearScope.value)
+    if (res.success) {
+      ElMessage.success('已清空所选范围存储内容')
+      await fetchList()
+    } else {
+      ElMessage.error(res.error || '清空失败')
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.message || '清空失败')
+  } finally {
+    loading.value = false
+  }
 }
 
 const remove = async (row: ImageInfo) => {

@@ -35,6 +35,14 @@ type Config struct {
 	R2Region          string
 	R2PublicURL       string
 
+	// 阿里云 OSS 配置
+	OSSAccessKeyID     string
+	OSSSecretAccessKey string
+	OSSBucketName      string
+	OSSEndpoint        string
+	OSSRegion          string
+	OSSPublicURL       string
+
 	// Redis 配置
 	RedisHost     string
 	RedisPort     string
@@ -95,6 +103,14 @@ func LoadConfig() {
 		R2Endpoint:        getEnv("R2_ENDPOINT", ""),
 		R2Region:          getEnv("R2_REGION", "auto"),
 		R2PublicURL:       getEnv("R2_PUBLIC_URL", ""),
+
+		// 阿里云 OSS 配置
+		OSSAccessKeyID:     getEnv("OSS_ACCESS_KEY_ID", ""),
+		OSSSecretAccessKey: getEnv("OSS_SECRET_ACCESS_KEY", ""),
+		OSSBucketName:      getEnv("OSS_BUCKET_NAME", ""),
+		OSSEndpoint:        getEnv("OSS_ENDPOINT", ""),
+		OSSRegion:          getEnv("OSS_REGION", ""),
+		OSSPublicURL:       getEnv("OSS_PUBLIC_URL", ""),
 
 		// Redis 配置
 		RedisHost:     getEnv("REDIS_HOST", "localhost"),

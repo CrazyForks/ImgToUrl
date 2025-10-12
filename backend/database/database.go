@@ -67,6 +67,7 @@ func AutoMigrate() error {
 		&models.ImageStats{},
 		&models.User{},
 		&models.GuestCode{},
+		&models.StorageConfig{}, // 新增存储配置表（支持 local / R2 切换）
 	)
 }
 

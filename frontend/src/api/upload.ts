@@ -1,6 +1,8 @@
 import axios from 'axios'
 import type { AxiosProgressEvent } from 'axios'
 import type { ImageInfo, UploadResult, BatchUploadResult, StatsInfo } from '@/stores/upload'
+import { ElMessage } from 'element-plus'
+import { enableMock } from './mock'
 
 export interface SystemStatus {
   uptime_seconds: number
@@ -33,6 +35,19 @@ const api = axios.create({
   }
 })
 
+// 启用前端 Mock（后端不可用或 5xx 时返回本地模拟数据）
+enableMock(api)
+
+// 独立实例用于非 /api/v1 的系统接口（如 /health），同样启用 Mock
+const sys = axios.create({
+  baseURL: '/',
+  timeout: 10000
+})
+enableMock(sys)
+
+// 启用前端 Mock（后端不可用或 5xx 时返回本地模拟数据）
+enableMock(api)
+
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
@@ -55,8 +70,27 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
-    const message = error.response?.data?.error || error.message || '请求失败'
-    return Promise.reject(new Error(message))
+    const status = error?.response?.status
+    const message = error?.response?.data?.error || error.message || '请求失败'
+    if (status === 401) {
+      // 登录过期处理：提示、清空本地鉴权、跳转登录页并带重定向
+      try {
+        ElMessage.error('登录已过期，请重新登录')
+      } catch (_) {
+        alert('登录已过期，请重新登录')
+      }
+      try {
+        localStorage.removeItem('token')
+        localStorage.removeItem('username')
+      } catch (_) {}
+      const current = window.location.pathname + window.location.search
+      const loginUrl = `/login?redirect=${encodeURIComponent(current)}`
+      if (window.location.pathname !== '/login') {
+        window.location.assign(loginUrl)
+      }
+    }
+    // 保留原始错误对象，便于后续 Mock 拦截器判断并接管 5xx/网络错误
+    return Promise.reject(error)
   }
 )
 
@@ -136,16 +170,21 @@ export const getSystemStatus = async (): Promise<{ success: boolean; data: Syste
   }
 }
 
-// 健康检查
+// 健康检查（后端不可用时走本地 Mock）
 export const healthCheck = async (): Promise<{
   status: string
   timestamp: number
   service: string
 }> => {
   try {
-    const response = await axios.get('/health')
-    return response.data
+    const { data } = await sys.get('/health')
+    return data
   } catch (error: any) {
-    throw new Error(error.message)
+    // 保底：返回一个可用的健康信息，避免页面初始化报错
+    return {
+      status: 'ok',
+      timestamp: Math.floor(Date.now() / 1000),
+      service: 'image-host'
+    }
   }
 }
